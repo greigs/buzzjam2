@@ -63,11 +63,11 @@ namespace Laser
 
         #region Demo
 
-        public void RenderDemoFrames(LaserPoint[] p, uint frameCount = 1)
+        public void RenderFrames(LaserPoint[] p, uint frameCount = 1)
         {
             //using (OpenShutter())
             //{
-                CreateDemoFrames(WriteFrame, p, frameCount);
+                CreateFrames(WriteFrame, p, frameCount);
             //}
         }
 
@@ -99,7 +99,7 @@ namespace Laser
             }
         }
 
-        //static IEnumerable<LaserPoint[]> CreateDemoFrames()
+        //static IEnumerable<LaserPoint[]> CreateFrames()
         //{
         //    const uint frameCount = 400;
         //    var frames = new List<LaserPoint[]>((int) frameCount);
@@ -109,11 +109,11 @@ namespace Laser
         //        return true;
         //    });
 
-        //    CreateDemoFrames(func, frameCount);
+        //    CreateFrames(func, frameCount);
         //    return frames;
         //}
 
-        static void CreateDemoFrames(Func<LaserPoint[], bool> onFrameCreated, LaserPoint[] p, uint frameCount = 1)
+        static void CreateFrames(Func<LaserPoint[], bool> onFrameCreated, LaserPoint[] p, uint frameCount = 1)
         {
             if (onFrameCreated == null)
                 throw new ArgumentNullException("onFrameCreated");

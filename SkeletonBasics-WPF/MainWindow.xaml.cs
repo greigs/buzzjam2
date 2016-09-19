@@ -4,7 +4,10 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using System;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 using Laser;
 
 namespace Microsoft.Samples.Kinect.SkeletonBasics
@@ -109,34 +112,37 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
 
 
-            using (DrawingContext dc = this.drawingGroup.Open())
-            {
-                dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, 640, 480));
-                StardisDraw d = new StardisDraw(dc);
-                while (true)
-                {
-                    Application.Current.Dispatcher.Invoke(() => d.DrawLoop(1));
-                    Thread.Sleep(20);
-                }
-
-            }
-
- 
-            //Thread t = new Thread(DrawLoop);
-            //t.Start();
-
-            //DrawLoop();
-        }
-
-        private void DrawLoop()
-        {
+            DoUIThreadWork();
 
 
             
-
-
-
         }
+
+        private void DoUIThreadWork()
+        {
+            var i = 0;
+            
+
+            StardisDraw stardisDraw = new StardisDraw();
+
+            while (Application.Current != null)
+            {
+
+                using (DrawingContext dc = this.drawingGroup.Open())
+                {
+
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
+                    {
+                        // Update UI elements
+                        stardisDraw.DrawingContext = dc;
+                        stardisDraw.DrawLoop(1);
+
+                    })).Wait();
+                }
+            }
+        }
+
+
 
         /// <summary>
         /// Execute shutdown tasks
@@ -146,6 +152,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
 
+        }
+
+        private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            StardisDraw.laserxoffset = e.NewValue * -1;
+        }
+
+        private void slider2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            StardisDraw.laseryoffset = e.NewValue * -1;
         }
 
 

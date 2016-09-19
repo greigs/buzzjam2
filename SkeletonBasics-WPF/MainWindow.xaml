@@ -60,5 +60,25 @@
         <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}">
             <StatusBarItem Padding="0 0 0 10"/>
         </StatusBar>
+        <Slider x:Name="slider" HorizontalAlignment="Left" Margin="678,311,-210,0" Grid.Row="1" VerticalAlignment="Top" Height="39" Width="568" RenderTransformOrigin="0.5,0.5" Minimum="500" Maximum="900" Value="670" SmallChange="1" LargeChange="4" ValueChanged="slider_ValueChanged">
+            <Slider.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="90"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Slider.RenderTransform>
+        </Slider>
+        <Slider x:Name="slider2" HorizontalAlignment="Left" Margin="698,337,-229,0" Grid.Row="1" VerticalAlignment="Top" Height="39" Width="567" RenderTransformOrigin="0.553,0.465" Maximum="600" Minimum="200" Value="470" SmallChange="1" LargeChange="4" ValueChanged="slider2_ValueChanged">
+            <Slider.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="90"/>
+                    <TranslateTransform X="-2.451" Y="5.181"/>
+                </TransformGroup>
+            </Slider.RenderTransform>
+        </Slider>
     </Grid>
 </Window>

@@ -18,41 +18,39 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     class StardisDraw
     {
 
-        private DrawingContext ctx;
+        public DrawingContext DrawingContext { get; set; }
+
 
         private double ry = 0;
 
-        private System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.White, 3);
+        private System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.White, 2);
 
-        private bool inverty = true;
+        private bool inverty = false;
 
-        public StardisDraw(DrawingContext dc)
-        {
-            this.ctx = dc;
-        }
+        private bool processFOV = false;
 
+        private bool enableLaser = false;
 
-
-        int w = 640, h = 480;
+        double w = 640.0, h = 480.0;
         private double globalScale = 1.0;
         //var canvas = document.getElementById('foo');
         //canvas.width = w; canvas.height = h;
-        //var ctx = canvas.getContext('2d');
+        //var DrawingContext = canvas.getContext('2d');
 
         double fov = 250;
 
 
-        double laserxoffset = -670;
-        double laseryoffset = -470;
+        public static double laserxoffset = -670;
+        public static double laseryoffset = -470;
         double laserscale = 22;
         const int maxDistanceBetweenLaserPoints = 500;
 
 
         static Point3D[] triangle =
         {
-            new Point3D(x: 0.0, y: -130.0, z: 0.0),
-            new Point3D(x: -100.0, y: 130.0, z: -60.0),
-            new Point3D(x: 100.0, y: 130.0, z: -60.0)
+            new Point3D(x: 0.0, y: -100.0, z: 0.0),
+            new Point3D(x: -100.0, y: 100.0, z: -60.0),
+            new Point3D(x: 100.0, y: 100.0, z: -60.0)
         };
 
         List<Point3D> scene = new List<Point3D>(triangle);
@@ -64,7 +62,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return d*Math.PI/180.0;
         }
 
-        public List<Point3D> calculate(double rx, double ry, double rz)
+        public List<Point3D> calculate(double rx, double ry, double rz, bool processFOV, double localScale)
         {
             var p = new List<Point3D>();
 
@@ -105,6 +103,23 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     y = h - y;
                 }
 
+                x = x*localScale;
+                y = y*localScale;
+                //z = z*localScale;
+
+                if (processFOV)
+                {
+                    var scale = fov/(fov + z);
+                    x = (w / 2) + x*scale;
+                    y = (h / 2) + y*scale;
+                    //z = z* scale;
+                }
+                else
+                {
+                    x = x + (w / 2);
+                    y = y + (h / 2);
+                }
+
                 p.Add( new Point3D(x: x, y: y, z: z));
             }
 
@@ -112,21 +127,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
 
-        public void ProcessFOV(Point3D[] points)
-        {
-            for (var i = 0; i < points.Length; i++)
-            {
-                var scale = fov / (fov + points[i].Z);
-                var sx = (w / 2) + points[i].X * scale;
-                var sy = (h / 2) + points[i].Y * scale;
 
-                points[i].X = sx;
-                points[i].X = sy;
-            }
-        }
-
-
-        public void draw(Point3D[] points, double localScale)
+        public void draw(Point3D[] points)
         {
             
             // begin stroke
@@ -136,13 +138,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             
             for (var i = 0; i < points.Length; i++)
             {
-                var scale = fov/(fov + points[i].Z);
-                var sx = (w/2) + points[i].X*scale*localScale*globalScale;
-                var sy = (h/2) + points[i].Y*scale*localScale*globalScale;
+
+                var sx = points[i].X * globalScale;
+                var sy = points[i].Y * globalScale;
 
                 if (i == 0)
                 {
-                    //ctx.moveTo(sx, sy);
+                    //DrawingContext.moveTo(sx, sy);
                     myPathFigure.StartPoint = new Point(sx,sy);
                 }
                 else
@@ -175,63 +177,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 Fill = null
             };
             myPath.Stroke = System.Windows.Media.Brushes.White;
-            myPath.StrokeThickness = 3;
             myPath.Data = myPathGeometry;
 
-            ctx.DrawGeometry(null, pen, myPathGeometry);
-
-
-            // begin stroke
-            myPathFigure = new PathFigure();
-            myPathSegmentCollection = new PathSegmentCollection();
-
-
-
-            for (var i = 0; i < points.Length; i++)
-            {
-                var scale = fov/(fov + points[i].Z);
-                var sx = (w/2) + points[i].X*scale*localScale*globalScale;
-                var sy = (h/2) + points[i].Y*scale*localScale*globalScale;
-
-                if (i == 0)
-                {
-                    myPathFigure.StartPoint = new Point(sx, sy);
-                    //ctx.moveTo(sx, sy);
-                }
-                else
-                {
-                    LineSegment myLineSegment = new LineSegment();
-                    myLineSegment.Point = new Point((int) sx, (int) sy);
-                    myPathSegmentCollection.Add(myLineSegment);
-                }
-
-                if (i == points.Length - 1)
-                {
-                    LineSegment myLineSegment = new LineSegment();
-                    myLineSegment.Point = myPathFigure.StartPoint;
-                    myPathSegmentCollection.Add(myLineSegment);
-                }
-            }
-
-            // end stroke
-            myPathFigure.Segments = myPathSegmentCollection;
-
-            myPathFigureCollection = new PathFigureCollection();
-            myPathFigureCollection.Add(myPathFigure);
-
-            myPathGeometry = new PathGeometry();
-            myPathGeometry.Figures = myPathFigureCollection;
-
-
-            myPath = new Path()
-            {
-                Fill = null,
-            };
-            myPath.Stroke = System.Windows.Media.Brushes.White;
-            myPath.StrokeThickness = 3;
-            myPath.Data = myPathGeometry;
-
-            ctx.DrawGeometry(null, pen, myPathGeometry);
+            DrawingContext.DrawGeometry(null, pen, myPathGeometry);
 
         }
 
@@ -242,29 +190,30 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
            
             double rx = 0, rz = 0;
 
-            ctx.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
+            DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
 
 
-            if (_laser == null)
+            if (_laser == null && enableLaser)
             {
-                _laser = DAC.Initialize(ControllerTypes.RiyaUSB, ControllerType.RiyaUSB);
+               _laser = DAC.Initialize(ControllerTypes.RiyaUSB, ControllerType.RiyaUSB);
+            }
+ 
+            Thread.Sleep(5);
 
+            var laserpoints = calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz),processFOV,1).ToArray();
+            var frame = CreateLaserFrame(laserpoints.ToList());
+            if (enableLaser)
+            {
+                _laser.RenderFrames(frame);
             }
 
-            CreateLaserFrame(calculate(degToRad(rx), degToRad(ry), degToRad(rz)));
 
-            Thread.Sleep(10);
-
-            var laserpoints = calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz)).ToArray();
-            //ProcessFOV(laserpoints);
-            //CreateLaserFrame(laserpoints.ToList());
-
-            draw(calculate(degToRad(rx), degToRad(ry), degToRad(rz)).ToArray(), 1);
-            //draw(calculate(degToRad(rx), degToRad(ry), degToRad(rz)), 1.1);
-            //draw(calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz)), 1);
-            //draw(calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz)), 1.1);
-            //draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz)), 1);
-            //draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz)), 1.1);
+            draw(calculate(degToRad(rx), degToRad(ry), degToRad(rz), processFOV, 1).ToArray());
+            draw(calculate(degToRad(rx), degToRad(ry), degToRad(rz), processFOV, 1.1).ToArray());
+            draw(calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz), processFOV, 1).ToArray());
+            draw(calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz), processFOV, 1.1).ToArray());
+            draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz), processFOV, 1).ToArray());
+            draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz), processFOV, 1.1).ToArray());
             
 
             ry += yRotationIncrement;
@@ -272,15 +221,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
      
         }
 
-        private void CreateLaserFrame(List<Point3D> point3Ds)
+        private LaserPoint[] CreateLaserFrame(List<Point3D> point3Ds)
         {
             point3Ds.Add(point3Ds.First());
-            var points = convertPoint(point3Ds.ToArray());
-            _laser.RenderDemoFrames(points);
+            var points = convertPoints(point3Ds.ToArray());
+            return points;
+
 
         }
 
-        LaserPoint[] convertPoint(Point3D[] points)
+        LaserPoint[] convertPoints(Point3D[] points)
         {
 
             List<LaserPoint> newPoints = new List<LaserPoint>();
