@@ -132,7 +132,7 @@ namespace Laser
         {
             return new LaserPoint
             (
-                new Point(point.x, point.y),
+                new System.Windows.Point(point.x, point.y),
                 Color.FromArgb(point.r, point.g, point.b),
                 (point.k == 0) ? true : false
             );

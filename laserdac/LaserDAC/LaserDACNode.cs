@@ -55,7 +55,7 @@ namespace VVVV.Nodes
             foreach(var p in FPointsInput)
             {
                 var col = FColorsInput[i].Color;
-                var pos = new Point((int)(p.x * 32700), (int)(p.y * 32700));
+                var pos = new  System.Windows.Point((p.x * 32700),(p.y * 32700));
                 yield return new LaserPoint(pos, col, col.A > 0);
             }
         }

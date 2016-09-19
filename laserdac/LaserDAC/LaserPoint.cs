@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Drawing;
+using System.Windows;
+using Point = System.Windows.Point;
 
 namespace Laser
 {
@@ -23,7 +25,7 @@ namespace Laser
 
         public bool Draw { get; set; }
 
-        public LaserPoint(Point pPoint, Boolean visible)
+        public LaserPoint(System.Windows.Point pPoint, Boolean visible)
         {
             this.Location = pPoint; 
             this.Color = Color.FromArgb(0, (visible ? 255 : 0), 0);

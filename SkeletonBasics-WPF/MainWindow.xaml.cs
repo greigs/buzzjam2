@@ -109,7 +109,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             // Display the drawing using our image control
             Image.Source = this.imageSource;
 
-
+            slider.Value = StardisDraw.laserxoffset;
 
 
             DoUIThreadWork();

@@ -65,9 +65,10 @@ namespace Laser
 
         public void RenderFrames(LaserPoint[] p, uint frameCount = 1)
         {
+            
             //using (OpenShutter())
             //{
-                CreateFrames(WriteFrame, p, frameCount);
+            CreateFrames(WriteFrame, p, frameCount);
             //}
         }
 
@@ -99,30 +100,16 @@ namespace Laser
             }
         }
 
-        //static IEnumerable<LaserPoint[]> CreateFrames()
-        //{
-        //    const uint frameCount = 400;
-        //    var frames = new List<LaserPoint[]>((int) frameCount);
-        //    var func = new Func<LaserPoint[], bool>(delegate(LaserPoint[] frame)
-        //    {
-        //        frames.Add(frame);
-        //        return true;
-        //    });
-
-        //    CreateFrames(func, frameCount);
-        //    return frames;
-        //}
-
         static void CreateFrames(Func<LaserPoint[], bool> onFrameCreated, LaserPoint[] p, uint frameCount = 1)
         {
+
+            var max = 0.0;
+
             if (onFrameCreated == null)
                 throw new ArgumentNullException("onFrameCreated");
 
             int nPointCnt = p.Length;
-            const int scaleKinect = 3;
-            const float scaleFactorCircle = 0.05f;
-            const float offsetx = -8000f;
-            const float offsety = 17000f;
+
             // create a set of frames
             for (int nFrames = 0; nFrames < frameCount; nFrames++)
 			{
@@ -131,19 +118,13 @@ namespace Laser
 			    for (int i = 0; i < nPointCnt; i++)
 			    {
 
-
-                    //var location = new Point(
-                    //    (int)(offsetx + Math.Sin(i*2.0f*Math.PI/nPointCnt)*32700 * scaleFactorCircle) ,
-                    //    (int) (offsety + Math.Cos(i*2.0f*Math.PI/nPointCnt)*32700 * scaleFactorCircle)
-                    //    );
-
                     var color = Color.FromArgb(
                         (int)(Math.Sin(i*2.0f*Math.PI/nPointCnt + nFrames/50.0f)*127 + 127),
                         (int)(Math.Cos(i*2.0f*Math.PI/nPointCnt - nFrames/50.0f)*127 + 127),
                         (int)(Math.Cos(i*2.0f*Math.PI/nPointCnt + Math.PI/4 + nFrames/50.0f)*127 + 127)
                         );
 
-                    frame[i] = new LaserPoint(p[i].Location, color, p[i].Draw);
+                    frame[i] = new LaserPoint(new System.Windows.Point(max - p[i].Location.X, max - p[i].Location.Y), color, p[i].Draw);
 			    }
 
                 onFrameCreated(frame);
