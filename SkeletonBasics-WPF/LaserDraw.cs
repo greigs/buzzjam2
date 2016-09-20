@@ -29,26 +29,27 @@ namespace LaserDisplay
 
         private bool processFOV = true;
 
-        private bool enableLaser = true;
+        private bool enableLaser = false;
 
 
 
         double w = 640.0, h = 480.0;
-        private double globalScale = 0.1;
-        //var canvas = document.getElementById('foo');
-        //canvas.width = w; canvas.height = h;
-        //var DrawingContext = canvas.getContext('2d');
+        double globalScale = 0.1;
 
         double fov = 340;
 
-        private double drawScale = 0.15;
-        private double drawOffsetX = 0;
-        private double drawOffsetY = 500;
+        double drawScale = 0.12;
+        double drawOffsetX = 100;
+        double drawOffsetY = 400;
 
         public static double laserxoffset = 2000;
         public static double laseryoffset = 0;
         double laserscale = 55;
-        const int maxDistanceBetweenLaserPoints = 1500;
+        int maxDistanceBetweenLaserPoints = 1500;
+
+        double yRotationIncrement = 1.0;
+        double xRotationIncrement = 0.2;
+        double zRotationIncrement = 0.1;
 
 
         static Point3D[] triangle =
@@ -58,7 +59,7 @@ namespace LaserDisplay
             new Point3D(x: 100.0, y: 100.0, z: -60.0)
         };
 
-        List<Point3D> scene = new List<Point3D>(triangle);
+        private readonly List<Point3D> scene = new List<Point3D>(triangle);
         private static DAC _laser;
 
 
@@ -108,9 +109,7 @@ namespace LaserDisplay
                 tx = x;
                 ty = y;
                 tz = z;
-
-
-
+                
                 x = x*localScale;
                 y = y*localScale;
                 z = z*localScale;
@@ -190,9 +189,7 @@ namespace LaserDisplay
         public void DrawLoop()
         {
 
-            double yRotationIncrement = 1.0;
-            double xRotationIncrement = 0.1;
-            double zRotationIncrement = 0.2;
+
 
             DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
 
@@ -204,20 +201,6 @@ namespace LaserDisplay
  
             Thread.Sleep(5);
 
-            //var laserpoints = calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz), processFOV,1).ToArray();
-            //var frame = CreateLaserFrame(laserpoints.ToList());
-            //if (enableLaser)
-            //{
-            //    _laser.RenderFrames(frame);
-            //}
-
-            /*
-                        draw(calculate(degToRad(rx), degToRad(ry), degToRad(rz), processFOV, 1).ToArray());
-                        draw(calculate(degToRad(rx), degToRad(ry), degToRad(rz), processFOV, 1.1).ToArray());
-                        draw(calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz), processFOV, 1).ToArray());
-                        draw(calculate(degToRad(rx), degToRad(ry + 120), degToRad(rz), processFOV, 1.1).ToArray());
-                        draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz), processFOV, 1).ToArray());
-                        draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz), processFOV, 1.1).ToArray());*/
 
             List<Point3D> points = new List<Point3D>();
 

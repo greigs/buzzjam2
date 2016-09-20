@@ -26,3 +26,4 @@ C:\repo\BuzzJam2\SkeletonBasics-WPF\obj\x86\Debug\LaserDisplay.g.resources
 C:\repo\BuzzJam2\SkeletonBasics-WPF\obj\x86\Debug\LaserDisplay.Properties.Resources.resources
 C:\repo\BuzzJam2\SkeletonBasics-WPF\obj\x86\Debug\LaserDisplay.exe
 C:\repo\BuzzJam2\SkeletonBasics-WPF\obj\x86\Debug\LaserDisplay.pdb
+C:\repo\BuzzJam2\SkeletonBasics-WPF\obj\x86\Debug\LaserDisplay.csprojResolveAssemblyReference.cache
