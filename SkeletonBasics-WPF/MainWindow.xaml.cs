@@ -135,7 +135,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     {
                         // Update UI elements
                         stardisDraw.DrawingContext = dc;
-                        stardisDraw.DrawLoop(1);
+                        stardisDraw.DrawLoop();
 
                     })).Wait();
                 }

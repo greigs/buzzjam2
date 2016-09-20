@@ -22,6 +22,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
 
         private double ry = 0;
+        double rx = 0, rz = 0;
 
         private System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.White, 2);
 
@@ -38,7 +39,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         //canvas.width = w; canvas.height = h;
         //var DrawingContext = canvas.getContext('2d');
 
-        double fov = 250;
+        double fov = 340;
 
         private double drawScale = 0.15;
         private double drawOffsetX = 0;
@@ -47,7 +48,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public static double laserxoffset = 2000;
         public static double laseryoffset = 0;
         double laserscale = 80;
-        const int maxDistanceBetweenLaserPoints = 500;
+        const int maxDistanceBetweenLaserPoints = 2000;
 
 
         static Point3D[] triangle =
@@ -66,7 +67,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return d*Math.PI/180.0;
         }
 
-        public List<Point3D> calculate(double rx, double ry, double rz, bool processFOV, double localScale)
+        public List<Point3D> calculate(List<Point3D> points, double rx, double ry, double rz, bool processFOV, double localScale)
         {
             var p = new List<Point3D>();
 
@@ -74,9 +75,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 double x, y, z, tx, ty, tz;
 
-                tx = scene[i].X;
-                ty = scene[i].Y;
-                tz = scene[i].Z;
+                tx = points[i].X;
+                ty = points[i].Y;
+                tz = points[i].Z;
 
 
                 //if (inverty)
@@ -112,7 +113,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
                 x = x*localScale;
                 y = y*localScale;
-                //z = z*localScale;
+                z = z*localScale;
 
                 if (processFOV)
                 {
@@ -186,11 +187,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         // Loop
-        public void DrawLoop(double yRotationIncrement)
+        public void DrawLoop()
         {
 
-           
-            double rx = 0, rz = 0;
+            double yRotationIncrement = 1.0;
+            double xRotationIncrement = 0.0;
+            double zRotationIncrement = 0.0;
 
             DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
 
@@ -217,18 +219,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz), processFOV, 1).ToArray());
                         draw(calculate(degToRad(rx), degToRad(ry + 240), degToRad(rz), processFOV, 1.1).ToArray());*/
 
-
-            var points0 = calculate(degToRad(rx), degToRad(ry), degToRad(rz), processFOV, 1);
-                    
-            var points1 = calculate(degToRad(rx), degToRad(ry + 120.0), degToRad(rz), processFOV, 1);
-
-            var points2 = calculate(degToRad(rx), degToRad(ry + 240.0), degToRad(rz), processFOV, 1);
+            List<Point3D> points = new List<Point3D>();
 
 
-            points0.AddRange(points1);
-            points0.AddRange(points2);
-
-            var allpoints = points0;
+            for (double d = 1.0; d < 1.5; d += 0.1)
+            {
+                Combine(points, calculate(scene, degToRad(rx), degToRad(ry), degToRad(rz), processFOV, d));
+                Combine(points, calculate(scene, degToRad(rx), degToRad(ry + 120.0), degToRad(rz), processFOV, d));
+                Combine(points, calculate(scene, degToRad(rx), degToRad(ry + 240.0), degToRad(rz), processFOV, d));
+            }
+            var allpoints = points;
 
             var laserFrames = CreateLaserFrame(allpoints);
 
@@ -240,7 +240,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             draw(laserFrames);
             
             ry += yRotationIncrement;
-            
+
+            // these are crazy
+            rx += xRotationIncrement;
+            rz += zRotationIncrement;
+
+        }
+
+        private void Combine(List<Point3D> points, List<Point3D> point3Ds)
+        {
+            points.AddRange(point3Ds);
         }
 
         private LaserPoint[] CreateLaserFrame(List<Point3D> point3Ds)
