@@ -92,7 +92,7 @@ namespace Laser
 
                 laser_point[] realFrame = frame.Select(p => (laser_point) p).ToArray();
 
-                const int PointRate = 10000;
+                const int PointRate = 12000;
                 if (NativeMethods.LDL_DAC_Write_Frame(device, realFrame, (uint) realFrame.Length, PointRate, NativeConstants.REPEAT_MODE) != NativeConstants.DAC_OK ) { }
                     return false;
 

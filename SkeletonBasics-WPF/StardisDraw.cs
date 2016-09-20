@@ -47,8 +47,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         public static double laserxoffset = 2000;
         public static double laseryoffset = 0;
-        double laserscale = 80;
-        const int maxDistanceBetweenLaserPoints = 2000;
+        double laserscale = 55;
+        const int maxDistanceBetweenLaserPoints = 1500;
 
 
         static Point3D[] triangle =
@@ -191,8 +191,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
 
             double yRotationIncrement = 1.0;
-            double xRotationIncrement = 0.0;
-            double zRotationIncrement = 0.0;
+            double xRotationIncrement = 0.1;
+            double zRotationIncrement = 0.2;
 
             DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
 
