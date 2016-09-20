@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.Samples.Kinect.SkeletonBasics.Properties {
+namespace LaserDisplay.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Samples.Kinect.SkeletonBasics.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("LaserDisplay.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,15 +57,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No ready Kinect found!.
-        /// </summary>
-        internal static string NoKinectReady {
-            get {
-                return ResourceManager.GetString("NoKinectReady", resourceCulture);
             }
         }
     }

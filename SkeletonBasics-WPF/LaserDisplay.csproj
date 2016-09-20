@@ -8,8 +8,8 @@
     <ProjectGuid>{8121846D-923E-4BB0-8647-30DA753D156E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.Samples.Kinect.SkeletonBasics</RootNamespace>
-    <AssemblyName>SkeletonBasics-WPF</AssemblyName>
+    <RootNamespace>LaserDisplay</RootNamespace>
+    <AssemblyName>LaserDisplay</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -39,7 +39,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Images\Kinect.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <PlatformTarget>x86</PlatformTarget>
@@ -50,9 +51,6 @@
     <OutputPath>bin\x86\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Kinect">
-      <HintPath>$(KINECTSDK10_DIR)\Assemblies\Microsoft.Kinect.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -73,7 +71,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="StardisDraw.cs" />
+    <Compile Include="LaserDraw.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -104,6 +102,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
@@ -111,15 +110,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Kinect.ico" />
-    <Resource Include="Images\Logo.png" />
-    <Resource Include="Images\Status.png" />
-    <Resource Include="Images\CheckedHover.png" />
-    <Resource Include="Images\CheckedNormal.png" />
-    <Resource Include="Images\UncheckedHover.png" />
-    <Resource Include="Images\UncheckedNormal.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\laserdac\LaserDAC\VVVV.LaserDAC.csproj">

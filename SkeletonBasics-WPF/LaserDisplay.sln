@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkeletonBasics-WPF", "SkeletonBasics-WPF.csproj", "{8121846D-923E-4BB0-8647-30DA753D156E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaserDisplay", "LaserDisplay.csproj", "{8121846D-923E-4BB0-8647-30DA753D156E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VVVV.LaserDAC", "..\laserdac\LaserDAC\VVVV.LaserDAC.csproj", "{EB7AC527-17BA-4B45-8FC6-A27DE635BDAB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtherDreamNativeTester", "..\laserdac\EtherDreamNativeTester\EtherDreamNativeTester.csproj", "{06464E6A-9018-4405-B4C5-93BF7B999895}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RiyaTest", "..\laserdac\RiyaTest\RiyaTest.csproj", "{D31E369E-CED2-46BE-89B9-9044B21FD283}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +37,6 @@ Global
 		{06464E6A-9018-4405-B4C5-93BF7B999895}.Release|Any CPU.ActiveCfg = Release|x86
 		{06464E6A-9018-4405-B4C5-93BF7B999895}.Release|x86.ActiveCfg = Release|x86
 		{06464E6A-9018-4405-B4C5-93BF7B999895}.Release|x86.Build.0 = Release|x86
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Debug|x86.Build.0 = Debug|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Release|x86.ActiveCfg = Release|Any CPU
-		{D31E369E-CED2-46BE-89B9-9044B21FD283}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

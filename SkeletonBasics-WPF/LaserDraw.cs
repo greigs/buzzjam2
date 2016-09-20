@@ -13,9 +13,9 @@ using Brushes = System.Windows.Media.Brushes;
 using Point = System.Windows.Point;
 
 
-namespace Microsoft.Samples.Kinect.SkeletonBasics
+namespace LaserDisplay
 {
-    class StardisDraw
+    class LaserDraw
     {
 
         public DrawingContext DrawingContext { get; set; }

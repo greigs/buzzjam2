@@ -5,14 +5,11 @@
 //------------------------------------------------------------------------------
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Laser;
 
-namespace Microsoft.Samples.Kinect.SkeletonBasics
+namespace LaserDisplay
 {
-    using System.IO;
     using System.Windows;
     using System.Windows.Media;
 
@@ -22,58 +19,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     public partial class MainWindow : Window
     {
         /// <summary>
-        /// Width of output drawing
-        /// </summary>
-        private const float RenderWidth = 640.0f;
-
-        /// <summary>
-        /// Height of our output drawing
-        /// </summary>
-        private const float RenderHeight = 480.0f;
-
-        /// <summary>
-        /// Thickness of drawn joint lines
-        /// </summary>
-        private const double JointThickness = 3;
-
-        /// <summary>
-        /// Thickness of body center ellipse
-        /// </summary>
-        private const double BodyCenterThickness = 10;
-
-        /// <summary>
-        /// Thickness of clip edge rectangles
-        /// </summary>
-        private const double ClipBoundsThickness = 10;
-
-        /// <summary>
-        /// Brush used to draw skeleton center point
-        /// </summary>
-        private readonly Brush centerPointBrush = Brushes.Blue;
-
-        /// <summary>
-        /// Brush used for drawing joints that are currently tracked
-        /// </summary>
-        private readonly Brush trackedJointBrush = new SolidColorBrush(Color.FromArgb(255, 68, 192, 68));
-
-        /// <summary>
-        /// Brush used for drawing joints that are currently inferred
-        /// </summary>        
-        private readonly Brush inferredJointBrush = Brushes.Yellow;
-
-        /// <summary>
-        /// Pen used for drawing bones that are currently tracked
-        /// </summary>
-        private readonly Pen trackedBonePen = new Pen(Brushes.Green, 6);
-
-        /// <summary>
-        /// Pen used for drawing bones that are currently inferred
-        /// </summary>        
-        private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
-
-
-        /// <summary>
-        /// Drawing group for skeleton rendering output
+        /// Drawing group for rendering output
         /// </summary>
         private DrawingGroup drawingGroup;
 
@@ -109,39 +55,26 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             // Display the drawing using our image control
             Image.Source = this.imageSource;
 
-            slider.Value = StardisDraw.laserxoffset;
+            slider.Value = LaserDraw.laserxoffset;
 
-
-            DoUIThreadWork();
-
-
-            
-        }
-
-        private void DoUIThreadWork()
-        {
-            var i = 0;
-            
-
-            StardisDraw stardisDraw = new StardisDraw();
+            LaserDraw laserDraw = new LaserDraw();
 
             while (Application.Current != null)
             {
-
                 using (DrawingContext dc = this.drawingGroup.Open())
                 {
 
                     Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
                     {
                         // Update UI elements
-                        stardisDraw.DrawingContext = dc;
-                        stardisDraw.DrawLoop();
+                        laserDraw.DrawingContext = dc;
+                        laserDraw.DrawLoop();
 
                     })).Wait();
                 }
             }
         }
-
+        
 
 
         /// <summary>
@@ -151,60 +84,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="e">event arguments</param>
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
         }
 
         private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            StardisDraw.laserxoffset = e.NewValue * -1;
+            LaserDraw.laserxoffset = e.NewValue * -1;
         }
 
         private void slider2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            StardisDraw.laseryoffset = e.NewValue * -1;
+            LaserDraw.laseryoffset = e.NewValue * -1;
         }
-
-
-        /*
-        /// <summary>
-        /// Event handler for Kinect sensor's SkeletonFrameReady event
-        /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
-        private void SensorSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
-        {
-            using (DrawingContext dc = this.drawingGroup.Open())
-            {
-                // Draw a transparent background to set the render size
-                dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
-
-                if (skeletons.Length != 0)
-                {
-                    foreach (Skeleton skel in skeletons)
-                    {
-                        RenderClippedEdges(skel, dc);
-
-                        if (skel.TrackingState == SkeletonTrackingState.Tracked)
-                        {
-                            this.DrawBonesAndJoints(skel, dc);
-                        }
-                        else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
-                        {
-                            dc.DrawEllipse(
-                            this.centerPointBrush,
-                            null,
-                            this.SkeletonPointToScreen(skel.Position),
-                            BodyCenterThickness,
-                            BodyCenterThickness);
-                        }
-                    }
-                }
-
-                // prevent drawing outside of our render area
-                this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
-            }
-        }*/
-
-
     }
 }
