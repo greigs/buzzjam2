@@ -29,12 +29,15 @@ namespace LaserDisplay
         private DrawingImage imageSource;
 
         private static DAC _laser;
+        public static LaserDraw _laserDraw;
 
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
         public MainWindow()
         {
+
+            _laserDraw = new LaserDraw();
             InitializeComponent();
         }
         
@@ -55,9 +58,13 @@ namespace LaserDisplay
             // Display the drawing using our image control
             Image.Source = this.imageSource;
 
-            slider.Value = LaserDraw.laserxoffset;
 
-            LaserDraw laserDraw = new LaserDraw();
+            slider.Value = _laserDraw.laserxoffset;
+
+
+            new AudioIn(_laserDraw).Start();
+
+            
 
             while (Application.Current != null)
             {
@@ -67,8 +74,8 @@ namespace LaserDisplay
                     Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
                     {
                         // Update UI elements
-                        laserDraw.DrawingContext = dc;
-                        laserDraw.DrawLoop();
+                        _laserDraw.DrawingContext = dc;
+                        _laserDraw.DrawLoop();
 
                     })).Wait();
                 }
@@ -88,12 +95,12 @@ namespace LaserDisplay
 
         private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            LaserDraw.laserxoffset = e.NewValue * -1;
+            _laserDraw.laserxoffset = e.NewValue * -1;
         }
 
         private void slider2_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            LaserDraw.laseryoffset = e.NewValue * -1;
+            _laserDraw.laseryoffset = e.NewValue * -1;
         }
     }
 }

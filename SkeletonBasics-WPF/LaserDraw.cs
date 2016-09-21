@@ -9,13 +9,14 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using Laser;
+using NAudio.Dsp;
 using Brushes = System.Windows.Media.Brushes;
 using Point = System.Windows.Point;
 
 
 namespace LaserDisplay
 {
-    class LaserDraw
+    public class LaserDraw
     {
 
         public DrawingContext DrawingContext { get; set; }
@@ -38,18 +39,18 @@ namespace LaserDisplay
 
         double fov = 340;
 
-        double drawScale = 0.12;
+        double drawScale = 0.01;
         double drawOffsetX = 100;
         double drawOffsetY = 400;
 
-        public static double laserxoffset = 2000;
-        public static double laseryoffset = 0;
+        public double laserxoffset = 2000;
+        public double laseryoffset = 0;
         double laserscale = 55;
         int maxDistanceBetweenLaserPoints = 1500;
 
         double yRotationIncrement = 1.0;
-        double xRotationIncrement = 0.2;
-        double zRotationIncrement = 0.1;
+        double xRotationIncrement = 0.1;
+        double zRotationIncrement = 0.2;
 
 
         static Point3D[] triangle =
@@ -61,6 +62,7 @@ namespace LaserDisplay
 
         private readonly List<Point3D> scene = new List<Point3D>(triangle);
         private static DAC _laser;
+        public float audioMaxVal = 1.0f;
 
 
         public double degToRad(double d)
@@ -76,9 +78,9 @@ namespace LaserDisplay
             {
                 double x, y, z, tx, ty, tz;
 
-                tx = points[i].X;
-                ty = points[i].Y;
-                tz = points[i].Z;
+                tx = points[i].X * globalScale;
+                ty = points[i].Y * globalScale;
+                tz = points[i].Z * globalScale;
 
 
                 //if (inverty)
@@ -147,8 +149,8 @@ namespace LaserDisplay
             for (var i = 0; i < points.Length; i++)
             {
 
-                var sx = (points[i].Location.X * globalScale * drawScale) + drawOffsetX;
-                var sy = (points[i].Location.Y * globalScale * drawScale) + drawOffsetY;
+                var sx = (points[i].Location.X * drawScale) + drawOffsetX;
+                var sy = (points[i].Location.Y * drawScale) + drawOffsetY;
 
                 if (i == 0)
                 {
@@ -204,6 +206,8 @@ namespace LaserDisplay
 
             List<Point3D> points = new List<Point3D>();
 
+
+            globalScale = audioMaxVal * 10f;
 
             for (double d = 1.0; d < 1.5; d += 0.1)
             {
