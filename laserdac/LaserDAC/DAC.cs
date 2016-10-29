@@ -63,7 +63,7 @@ namespace Laser
 
         #region Demo
 
-        public void RenderFrames(LaserPoint[] p, uint frameCount = 1)
+        public void RenderFrame(LaserPoint[] p, uint frameCount = 1)
         {
             
             //using (OpenShutter())

@@ -5,6 +5,8 @@
 //------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
+using System.Threading;
 using System.Windows.Threading;
 using Laser;
 
@@ -30,6 +32,7 @@ namespace LaserDisplay
 
         private static DAC _laser;
         public static LaserDraw _laserDraw;
+        private static bool exiting;
 
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
@@ -62,11 +65,13 @@ namespace LaserDisplay
             slider.Value = _laserDraw.laserxoffset;
 
 
-            new AudioIn(_laserDraw).Start();
+
+            var audio = new AudioIn(_laserDraw);
+            audio.Start();
 
             
 
-            while (Application.Current != null)
+            while (Application.Current != null && !exiting)
             {
                 using (DrawingContext dc = this.drawingGroup.Open())
                 {
@@ -75,11 +80,13 @@ namespace LaserDisplay
                     {
                         // Update UI elements
                         _laserDraw.DrawingContext = dc;
-                        _laserDraw.DrawLoop();
+                        _laserDraw.DrawFrame();
+                        _laserDraw.UpdateAnimation();
 
                     })).Wait();
                 }
             }
+            audio.Stop();
         }
         
 
@@ -91,6 +98,7 @@ namespace LaserDisplay
         /// <param name="e">event arguments</param>
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            exiting = true;
         }
 
         private void slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

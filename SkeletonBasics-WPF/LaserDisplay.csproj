@@ -78,6 +78,7 @@
     <Compile Include="AudioIn.cs" />
     <Compile Include="LaserDraw.cs" />
     <Compile Include="SampleAggregator.cs" />
+    <Compile Include="ScreenRenderer.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -25,9 +25,6 @@ namespace LaserDisplay
         private double ry = 0;
         double rx = 0, rz = 0;
 
-        private System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.White, 2);
-
-
         private bool processFOV = true;
 
         private bool enableLaser = false;
@@ -53,28 +50,27 @@ namespace LaserDisplay
         double zRotationIncrement = 0.2;
 
 
-        static Point3D[] triangle =
-        {
-            new Point3D(x: 0.0, y: -100.0, z: 0.0),
-            new Point3D(x: -100.0, y: 100.0, z: -60.0),
-            new Point3D(x: 100.0, y: 100.0, z: -60.0)
-        };
-
-        private readonly List<Point3D> scene = new List<Point3D>(triangle);
+        
+        private readonly List<MyShape> scene = new List<MyShape>();
         private static DAC _laser;
         public float audioMaxVal = 1.0f;
 
+
+        public LaserDraw()
+        {
+            CreateScene();
+        }
 
         public double degToRad(double d)
         {
             return d*Math.PI/180.0;
         }
 
-        public List<Point3D> calculate(List<Point3D> points, double rx, double ry, double rz, bool processFOV, double localScale)
+        public List<Point3D> TranslateAndTransform(List<Point3D> points, double rx, double ry, double rz, bool processFOV, double localScale)
         {
             var p = new List<Point3D>();
 
-            for (var i = 0; i < scene.Count; i++)
+            for (var i = 0; i < points.Count; i++)
             {
                 double x, y, z, tx, ty, tz;
 
@@ -135,66 +131,31 @@ namespace LaserDisplay
             return p;
         }
 
-
-
-        public void draw(LaserPoint[] points)
+        public void CreateScene()
         {
-            
-            // begin stroke
-            PathFigure myPathFigure = new PathFigure();
-            PathSegmentCollection myPathSegmentCollection = new PathSegmentCollection();
-
-
-
-            for (var i = 0; i < points.Length; i++)
+            Point3D[] triangle1Points =
             {
-
-                var sx = (points[i].Location.X * drawScale) + drawOffsetX;
-                var sy = (points[i].Location.Y * drawScale) + drawOffsetY;
-
-                if (i == 0)
-                {
-                    //DrawingContext.moveTo(sx, sy);
-                    myPathFigure.StartPoint = new Point(sx,sy);
-                }
-                else
-                {
-                    LineSegment myLineSegment = new LineSegment();
-                    myLineSegment.Point = new Point( sx,  sy);
-                    myPathSegmentCollection.Add(myLineSegment);
-                }
-
-            }
-
-            // end stroke
-            myPathFigure.Segments = myPathSegmentCollection;
-
-            PathFigureCollection myPathFigureCollection = new PathFigureCollection();
-            myPathFigureCollection.Add(myPathFigure);
-
-            PathGeometry myPathGeometry = new PathGeometry();
-            myPathGeometry.Figures = myPathFigureCollection;
-
-
-            Path myPath = new Path()
-            {
-                Fill = null
+                new Point3D(x: 0.0, y: -100.0, z: 0.0),
+                new Point3D(x: -100.0, y: 100.0, z: -60.0),
+                new Point3D(x: 100.0, y: 100.0, z: -60.0)
             };
-            myPath.Stroke = System.Windows.Media.Brushes.White;
-            myPath.Data = myPathGeometry;
 
-            DrawingContext.DrawGeometry(null, pen, myPathGeometry);
+            List<MyShape> shapes = new List<MyShape>();
 
+            for (double scale = 1.0; scale < 1.5; scale += 0.1)
+            {
+                shapes.Add(new MyShape()
+                {
+                    Points = triangle1Points.ToList(),
+                    Scale = scale
+                });
+            }
+            scene.AddRange(shapes);
         }
-
-        // Loop
-        public void DrawLoop()
+        
+        public void DrawFrame()
         {
-
-
-
             DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
-
 
             if (_laser == null && enableLaser)
             {
@@ -202,36 +163,38 @@ namespace LaserDisplay
             }
  
             Thread.Sleep(5);
-
-
+            
             List<Point3D> points = new List<Point3D>();
-
-
+            
             globalScale = 1.0f;
 
-            for (double d = 1.0; d < 1.5; d += 0.1)
+            foreach (var shape in scene)
             {
-                Combine(points, calculate(scene, degToRad(rx), degToRad(ry), degToRad(rz), processFOV, d));
-                Combine(points, calculate(scene, degToRad(rx), degToRad(ry + 120.0), degToRad(rz), processFOV, d));
-                Combine(points, calculate(scene, degToRad(rx), degToRad(ry + 240.0), degToRad(rz), processFOV, d));
+                Combine(points, TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry), degToRad(rz), processFOV, shape.Scale));
+                Combine(points, TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + 120.0), degToRad(rz), processFOV, shape.Scale));
+                Combine(points, TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + 240.0), degToRad(rz), processFOV, shape.Scale));
             }
-            var allpoints = points;
-
-            var laserFrames = CreateLaserFrame(allpoints);
+            
+            var laserFrame = CreateLaserFrame(points);
 
             if (enableLaser)
             {
-                _laser.RenderFrames(laserFrames);
+                _laser.RenderFrame(laserFrame);
             }
 
-            draw(laserFrames);
-            
+            ScreenRenderer.DrawToScreen(laserFrame,drawScale,drawOffsetX,drawOffsetY,DrawingContext);
+
+
+        }
+
+        public void UpdateAnimation()
+        {
+
             ry += yRotationIncrement;
 
             // these are crazy
             //rx += xRotationIncrement;
             //rz += zRotationIncrement;
-
         }
 
         private void Combine(List<Point3D> points, List<Point3D> point3Ds)
@@ -241,14 +204,18 @@ namespace LaserDisplay
 
         private LaserPoint[] CreateLaserFrame(List<Point3D> point3Ds)
         {
-            point3Ds.Add(point3Ds.First());
-            var points = convertPoints(point3Ds.ToArray());
+            if (point3Ds.Any())
+            {
+                point3Ds.Add(point3Ds.First());
+            }
+            
+            var points = ConvertToLaserPoints(point3Ds.ToArray());
             return points;
 
 
         }
 
-        LaserPoint[] convertPoints(Point3D[] points)
+        private LaserPoint[] ConvertToLaserPoints(Point3D[] points)
         {
 
             List<LaserPoint> newPoints = new List<LaserPoint>();
@@ -281,36 +248,36 @@ namespace LaserDisplay
                         double prevSegmentEndY = newPointY;
                         for (int j=0; j< numSegments; j++)
                         {
-                            var calcPoint = CalculatePoint(new Point(prevSegmentEndX, prevSegmentEndY),
+                            var calcPoint = CreateInterpolatedPoint(new Point(prevSegmentEndX, prevSegmentEndY),
                                 new Point(nextpointX, nextpointY), maxDistanceBetweenLaserPoints);
                             
 
                             // from the new point, calculate the vector back to the old point.
-                            var v = new Vector(calcPoint.X, calcPoint.Y);
-                            var v2 = new Vector(prevSegmentEndX, prevSegmentEndY);
-                            var v3 = v + v2;
-                            Vector perpVector;
+                            //var v = new Vector(calcPoint.X, calcPoint.Y);
+                            //var v2 = new Vector(prevSegmentEndX, prevSegmentEndY);
+                            //var v3 = v + v2;
+                            //Vector perpVector;
 
-                            if (r.Next(0,1) > 0)
-                            {
-                                perpVector = PerpendicularClockwise(v3);
-                            }
-                            else
-                            {
-                                perpVector = PerpendicularCounterClockwise(v3);
-                            }
+                            //if (r.Next(0,1) > 0)
+                            //{
+                            //    perpVector = PerpendicularClockwise(v3);
+                            //}
+                            //else
+                            //{
+                            //    perpVector = PerpendicularCounterClockwise(v3);
+                            //}
                             
 
-                            var calcPoint2 =  CalculatePoint(new Point(v.X, v.Y),
-                                new Point(perpVector.X, perpVector.Y), 5000);
+                            //var calcPoint2 =  CreateInterpolatedPoint(new Point(v.X, v.Y),
+                            //    new Point(perpVector.X, perpVector.Y), 5000);
 
-                            var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);                            
+                            //var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);                            
 
                             //var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
                            
                             //newPoints.Add(newP2);
 
-                            newPoints.Add(newP);
+                            //newPoints.Add(newP);
 
                             prevSegmentEndX = calcPoint.X;
                             prevSegmentEndY = calcPoint.Y;
@@ -335,7 +302,7 @@ namespace LaserDisplay
             return new Vector(vector.Y, -vector.X);
         }
 
-        private static Point CalculatePoint(Point a, Point b, double distance)
+        private static Point CreateInterpolatedPoint(Point a, Point b, double distance)
         {
 
             // a. calculate the vector from o to g:
@@ -354,4 +321,10 @@ namespace LaserDisplay
         }
     }
 
+    public class MyShape
+    {
+     
+        public List<Point3D> Points { get; set; }
+        public double Scale { get; set; } = 1.0;
+    }
 }

@@ -40,6 +40,11 @@ namespace LaserDisplay
             waveIn.StartRecording();
         }
 
+        public void Stop()
+        {
+            waveIn.StopRecording();
+        }
+
         void OnDataAvailable(object sender, WaveInEventArgs e)
         {
             if (false) //this.InvokeRequired)
