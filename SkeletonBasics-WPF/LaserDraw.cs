@@ -207,7 +207,7 @@ namespace LaserDisplay
             List<Point3D> points = new List<Point3D>();
 
 
-            globalScale = audioMaxVal * 10f;
+            globalScale = 1.0f;
 
             for (double d = 1.0; d < 1.5; d += 0.1)
             {
@@ -229,8 +229,8 @@ namespace LaserDisplay
             ry += yRotationIncrement;
 
             // these are crazy
-            rx += xRotationIncrement;
-            rz += zRotationIncrement;
+            //rx += xRotationIncrement;
+            //rz += zRotationIncrement;
 
         }
 
@@ -255,7 +255,7 @@ namespace LaserDisplay
 
 
             var i = 0;
-
+            Random r = new Random();
             while (i < points.Length)
             {
                 
@@ -265,6 +265,7 @@ namespace LaserDisplay
                 var newPoint = new LaserPoint(new System.Windows.Point(newPointX, newPointY), true);
 
                 newPoints.Add(newPoint);
+
 
                 if (i < (points.Length - 1))
                 {
@@ -282,12 +283,38 @@ namespace LaserDisplay
                         {
                             var calcPoint = CalculatePoint(new Point(prevSegmentEndX, prevSegmentEndY),
                                 new Point(nextpointX, nextpointY), maxDistanceBetweenLaserPoints);
+                            
 
-                            var newP = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
+                            // from the new point, calculate the vector back to the old point.
+                            var v = new Vector(calcPoint.X, calcPoint.Y);
+                            var v2 = new Vector(prevSegmentEndX, prevSegmentEndY);
+                            var v3 = v + v2;
+                            Vector perpVector;
+
+                            if (r.Next(0,1) > 0)
+                            {
+                                perpVector = PerpendicularClockwise(v3);
+                            }
+                            else
+                            {
+                                perpVector = PerpendicularCounterClockwise(v3);
+                            }
+                            
+
+                            var calcPoint2 =  CalculatePoint(new Point(v.X, v.Y),
+                                new Point(perpVector.X, perpVector.Y), 5000);
+
+                            var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);                            
+
+                            //var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
+                           
+                            //newPoints.Add(newP2);
+
                             newPoints.Add(newP);
 
                             prevSegmentEndX = calcPoint.X;
                             prevSegmentEndY = calcPoint.Y;
+
                         }
                     }
                 }
@@ -296,6 +323,16 @@ namespace LaserDisplay
 
             return newPoints.ToArray();
 
+        }
+
+        public static Vector PerpendicularClockwise(Vector vector)
+        {
+            return new Vector(-vector.Y, vector.X);
+        }
+
+        public static Vector PerpendicularCounterClockwise(Vector vector)
+        {
+            return new Vector(vector.Y, -vector.X);
         }
 
         private static Point CalculatePoint(Point a, Point b, double distance)
