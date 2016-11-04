@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using System.Windows.Shapes;
 using Laser;
-using NAudio.Dsp;
 using Brushes = System.Windows.Media.Brushes;
 using Point = System.Windows.Point;
 
@@ -49,9 +45,8 @@ namespace LaserDisplay
         double xRotationIncrement = 0.1;
         double zRotationIncrement = 0.2;
 
-
+        private Scene scene;
         
-        private readonly List<MyShape> scene = new List<MyShape>();
         private static DAC _laser;
         public float audioMaxVal = 1.0f;
 
@@ -74,7 +69,7 @@ namespace LaserDisplay
             {
                 var newPoint = TranslatetAndTransform(rx, ry, rz, processFOV, localScale, point);
 
-                p.Add(newPoint );
+                p.Add(newPoint);
             }
 
             return p;
@@ -144,50 +139,45 @@ namespace LaserDisplay
             {
                 new Point3D(x: 0.0, y: -100.0, z: 0.0),
                 new Point3D(x: -100.0, y: 100.0, z: -60.0),
-                new Point3D(x: 100.0, y: 100.0, z: -60.0)
+                new Point3D(x: 100.0, y: 100.0, z: -60.0),
+                //new Point3D(x: 0.0, y: -100.0, z: 0.0)
             };
 
-            Point3D[] slantedTriangle2 =
-            {
-                new Point3D(slantedTriangle[0].X, slantedTriangle[0].Y, slantedTriangle[0].Z),
-                new Point3D(slantedTriangle[1].X, slantedTriangle[1].Y, slantedTriangle[1].Z),
-                new Point3D(slantedTriangle[2].X, slantedTriangle[2].Y, slantedTriangle[2].Z),
-            };
+            var join = true;
 
-
-            Point3D[] slantedTriangle3 =
-            {
-                new Point3D(slantedTriangle[0].X, slantedTriangle[0].Y, slantedTriangle[0].Z),
-                new Point3D(slantedTriangle[1].X, slantedTriangle[1].Y, slantedTriangle[1].Z),
-                new Point3D(slantedTriangle[2].X, slantedTriangle[2].Y, slantedTriangle[2].Z),
-            };
-
-            List<MyShape> shapes = new List<MyShape>();
+            scene = new Scene();
 
             for (var scale = 1.0; scale < 1.5; scale += 0.1)
             {
-                shapes.Add(new MyShape()
+                var shape1 = new MyShape()
                 {
                     Points = slantedTriangle.ToList(),
                     Scale = scale,
-                    RotateY = 0
+                    RotateY = 0,
+                };
+
+                scene.Shapes.Add(shape1);
+
+                scene.Shapes.Add(new MyShape()
+                {
+                    Points = slantedTriangle.ToList(),
+                    Scale = scale,
+                    RotateY = 120,
+                    JoinWithPrevious = join
                 });
 
-                shapes.Add(new MyShape()
-                {
-                    Points = slantedTriangle2.ToList(),
-                    Scale = scale,
-                    RotateY = 120
-                });
 
-                shapes.Add(new MyShape()
+                var points = slantedTriangle.ToList();
+
+                scene.Shapes.Add(new MyShape()
                 {
-                    Points = slantedTriangle3.ToList(),
+                    Points = points,
                     Scale = scale,
-                    RotateY = 240
+                    RotateY = 240,
+                    JoinWithPrevious = join,
+                    JoinWithShape = shape1
                 });
             }
-            scene.AddRange(shapes);
         }
         
         public void DrawFrame()
@@ -202,25 +192,34 @@ namespace LaserDisplay
             Thread.Sleep(5);
             
             List<LaserPoint> laserFrame = new List<LaserPoint>();
-            
-            var joinTogether = false;
-            foreach (var shape in scene)
+
+            foreach (var shape in scene.Shapes)
             {
                 var translated = TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + shape.RotateY),
                     degToRad(rz), processFOV, shape.Scale);
 
-                Combine(laserFrame, ConvertToLaserPoints(translated), joinTogether);
+                var converted = ConvertToLaserPoints(translated, shape.JoinWithPrevious);
+                
+                laserFrame.AddRange(converted);
+
+                if (shape.JoinWithShape != null)
+                {
+                    var lineStart = translated.Last();
+                    var lineEnd = TranslateAndTransform(new List<Point3D>() {shape.JoinWithShape.Points.First()},
+                        degToRad(rx), degToRad(ry + shape.JoinWithShape.RotateY),
+                        degToRad(rz), processFOV, shape.JoinWithShape.Scale).First();
+                    var lst = new List<Point3D> {lineStart, lineEnd};
+                    var conv = ConvertToLaserPoints(lst, false);
+                    laserFrame.AddRange(conv);
+                }
             }
-            
-            
+
             if (enableLaser)
             {
                 _laser.RenderFrame(laserFrame.ToArray());
             }
 
             ScreenRenderer.DrawToScreen(laserFrame.ToArray(),drawScale,drawOffsetX,drawOffsetY,DrawingContext);
-
-
         }
 
         public void UpdateAnimation()
@@ -233,29 +232,19 @@ namespace LaserDisplay
             rz += zRotationIncrement;
         }
 
-        private void Combine(List<LaserPoint> points, List<LaserPoint> point3Ds, bool joinTogether)
+        private void Combine(List<LaserPoint> points, List<LaserPoint> point3Ds)
         {
-            points.AddRange(point3Ds);
-            if (!joinTogether && point3Ds.Any())
-            {
-                var newPoint = new LaserPoint(point3Ds.Last());
-                newPoint.Draw = false;
-                points.Add(newPoint);
-            }
-        }
-
-        private List<LaserPoint> CreateLaserFrame(List<Point3D> point3Ds)
-        {
-            if (point3Ds.Any())
-            {
-                point3Ds.Add(point3Ds.First());
-            }
             
-            var points = ConvertToLaserPoints(point3Ds);
-            return points;
+            //if (!joinTogether && point3Ds.Any())
+            //{
+            //    var newPoint = new LaserPoint(point3Ds.Last());
+            //    newPoint.Draw = false;
+            //    points.Add(newPoint);
+            //}
         }
 
-        private List<LaserPoint> ConvertToLaserPoints(List<Point3D> points)
+
+        private List<LaserPoint> ConvertToLaserPoints(List<Point3D> points, bool connectWithPrevious)
         {
 
             List<LaserPoint> newPoints = new List<LaserPoint>();
@@ -268,6 +257,11 @@ namespace LaserDisplay
                 
                 var newPointX = (points[i].X + laserxoffset)*laserscale;
                 var newPointY = (points[i].Y + laseryoffset)*laserscale;
+
+                if (!connectWithPrevious && i == 0)
+                {
+                    newPoints.Add(new LaserPoint(new System.Windows.Point(newPointX, newPointY), false));
+                }
 
                 var newPoint = new LaserPoint(new System.Windows.Point(newPointX, newPointY), true);
 
@@ -366,5 +360,12 @@ namespace LaserDisplay
         public List<Point3D> Points { get; set; }
         public double Scale { get; set; } = 1.0;
         public double RotateY { get; set; }
+        public bool JoinWithPrevious { get; set; }
+        public MyShape JoinWithShape { get; set; }
+    }
+
+    public class Scene
+    {
+        public List<MyShape> Shapes { get; set; } = new List<MyShape>();
     }
 }

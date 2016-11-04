@@ -20,11 +20,13 @@ namespace LaserDisplay
         public static void DrawToScreen(LaserPoint[] points, double drawScale, double drawOffsetX, double drawOffsetY, DrawingContext dc)
         {
 
+            PathFigureCollection myPathFigureCollection = new PathFigureCollection();
+
             // begin stroke
             PathFigure myPathFigure = new PathFigure();
             PathSegmentCollection myPathSegmentCollection = new PathSegmentCollection();
 
-
+            
 
             for (var i = 0; i < points.Length; i++)
             {
@@ -37,9 +39,21 @@ namespace LaserDisplay
                     //DrawingContext.moveTo(sx, sy);
                     myPathFigure.StartPoint = new Point(sx, sy);
                 }
+                else if (points[i].Draw)
+                {
+                    LineSegment myLineSegment = new LineSegment()
+                    {
+                        IsStroked = true
+                    };
+                    myLineSegment.Point = new Point(sx, sy);
+                    myPathSegmentCollection.Add(myLineSegment);
+                }
                 else
                 {
-                    LineSegment myLineSegment = new LineSegment();
+                    LineSegment myLineSegment = new LineSegment()
+                    {
+                        IsStroked = false
+                    };
                     myLineSegment.Point = new Point(sx, sy);
                     myPathSegmentCollection.Add(myLineSegment);
                 }
@@ -49,7 +63,6 @@ namespace LaserDisplay
             // end stroke
             myPathFigure.Segments = myPathSegmentCollection;
 
-            PathFigureCollection myPathFigureCollection = new PathFigureCollection();
             myPathFigureCollection.Add(myPathFigure);
 
             PathGeometry myPathGeometry = new PathGeometry();
