@@ -140,14 +140,14 @@ namespace LaserDisplay
                 new Point3D(x: 0.0, y: -100.0, z: 0.0),
                 new Point3D(x: -100.0, y: 100.0, z: -60.0),
                 new Point3D(x: 100.0, y: 100.0, z: -60.0),
-                //new Point3D(x: 0.0, y: -100.0, z: 0.0)
+                new Point3D(x: 0.0, y: -100.0, z: 0.0)
             };
 
-            var join = true;
+            var join = false;
 
             scene = new Scene();
 
-            for (var scale = 1.0; scale < 1.5; scale += 0.1)
+            for (var scale = 1.0; scale < 1.1; scale += 0.1)
             {
                 var shape1 = new MyShape()
                 {
@@ -157,6 +157,7 @@ namespace LaserDisplay
                 };
 
                 scene.Shapes.Add(shape1);
+
 
                 scene.Shapes.Add(new MyShape()
                 {
@@ -175,7 +176,7 @@ namespace LaserDisplay
                     Scale = scale,
                     RotateY = 240,
                     JoinWithPrevious = join,
-                    JoinWithShape = shape1
+                    //JoinWithShape = shape1
                 });
             }
         }
@@ -196,7 +197,7 @@ namespace LaserDisplay
             foreach (var shape in scene.Shapes)
             {
                 var translated = TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + shape.RotateY),
-                    degToRad(rz), processFOV, shape.Scale);
+                    degToRad(rz), processFOV, shape.Scale + 1.0 * (( audioMaxVal + 0.1)) * 1.1);
 
                 var converted = ConvertToLaserPoints(translated, shape.JoinWithPrevious);
                 
@@ -225,22 +226,11 @@ namespace LaserDisplay
         public void UpdateAnimation()
         {
 
-            ry += yRotationIncrement;
+           ry += yRotationIncrement;
 
             // these are crazy
             rx += xRotationIncrement;
             rz += zRotationIncrement;
-        }
-
-        private void Combine(List<LaserPoint> points, List<LaserPoint> point3Ds)
-        {
-            
-            //if (!joinTogether && point3Ds.Any())
-            //{
-            //    var newPoint = new LaserPoint(point3Ds.Last());
-            //    newPoint.Draw = false;
-            //    points.Add(newPoint);
-            //}
         }
 
 
@@ -267,6 +257,7 @@ namespace LaserDisplay
 
                 newPoints.Add(newPoint);
 
+                bool addNoiseToLines = true;
 
                 if (i < (points.Count - 1))
                 {
@@ -274,6 +265,7 @@ namespace LaserDisplay
                     var nextpointX = (nextPoint.X + laserxoffset) * laserscale;
                     var nextpointY = (nextPoint.Y + laseryoffset) * laserscale;
 
+                    
                     var distance = Math.Sqrt(Math.Pow(newPointX - nextpointX, 2) + Math.Pow(newPointY - nextpointY, 2));
                     if (distance > maxDistanceBetweenLaserPoints)
                     {
@@ -284,34 +276,38 @@ namespace LaserDisplay
                         {
                             var calcPoint = CreateInterpolatedPoint(new Point(prevSegmentEndX, prevSegmentEndY),
                                 new Point(nextpointX, nextpointY), maxDistanceBetweenLaserPoints);
+
                             
+                            //from the new point, calculate the vector back to the old point.
+                            var v = new Vector(calcPoint.X, calcPoint.Y);
+                            var v2 = new Vector(prevSegmentEndX, prevSegmentEndY);
+                            var v3 = v + v2;
+                            Vector perpVector;
 
-                            // from the new point, calculate the vector back to the old point.
-                            //var v = new Vector(calcPoint.X, calcPoint.Y);
-                            //var v2 = new Vector(prevSegmentEndX, prevSegmentEndY);
-                            //var v3 = v + v2;
-                            //Vector perpVector;
+                            if (r.Next(0, 2) > 0)
+                            {
+                                perpVector = PerpendicularClockwise(v3);
+                            }
+                            else
+                            {
+                                perpVector = PerpendicularCounterClockwise(v3);
+                            }
 
-                            //if (r.Next(0,1) > 0)
-                            //{
-                            //    perpVector = PerpendicularClockwise(v3);
-                            //}
-                            //else
-                            //{
-                            //    perpVector = PerpendicularCounterClockwise(v3);
-                            //}
-                            
+                            var scl = 80;
+                            var calcPoint2 = CreateInterpolatedPoint(new Point(v.X, v.Y),
+                                new Point(perpVector.X, perpVector.Y),
+                                ((audioMaxVal)*scl)*((audioMaxVal)*scl));
 
-                            //var calcPoint2 =  CreateInterpolatedPoint(new Point(v.X, v.Y),
-                            //    new Point(perpVector.X, perpVector.Y), 5000);
+                            var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);
 
-                            //var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);                            
+                            var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
 
-                            //var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
-                           
                             //newPoints.Add(newP2);
 
-                            //newPoints.Add(newP);
+                            if (addNoiseToLines)
+                            {
+                                newPoints.Add(newP);
+                            }
 
                             prevSegmentEndX = calcPoint.X;
                             prevSegmentEndY = calcPoint.Y;

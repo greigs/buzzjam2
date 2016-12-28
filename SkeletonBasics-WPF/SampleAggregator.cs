@@ -43,7 +43,7 @@ class SampleAggregator
             fftPos++;
             if (fftPos >= fftLength)
             {
-                var average = fftBuffer.Average(x => Math.Abs(x.X));
+                var average = fftBuffer.Average(x => Math.Abs(x.Y));
                 fftArgs.AverageVolume = average;
                 fftPos = 0;
                 FastFourierTransform.FFT(true, m, fftBuffer);

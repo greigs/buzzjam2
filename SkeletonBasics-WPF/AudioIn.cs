@@ -17,7 +17,9 @@ namespace LaserDisplay
         private static int fftLength = 256; // NAudio fft wants powers of two!
 
         // There might be a sample aggregator in NAudio somewhere but I made a variation for my needs
-        private SampleAggregator sampleAggregator = new SampleAggregator(fftLength);
+        private readonly SampleAggregator _sampleAggregator = new SampleAggregator(fftLength);
+
+        Queue<float> vals = new Queue<float>(5);
 
         public AudioIn(LaserDraw laserDraw)
         {
@@ -27,8 +29,8 @@ namespace LaserDisplay
 
         public void Start()
         {
-            sampleAggregator.FftCalculated += new EventHandler<FftEventArgs>(FftCalculated);
-            sampleAggregator.PerformFFT = true;
+            _sampleAggregator.FftCalculated += new EventHandler<FftEventArgs>(FftCalculated);
+            _sampleAggregator.PerformFFT = true;
 
             // Here you decide what you want to use as the waveIn.
             // There are many options in NAudio and you can use other streams/files.
@@ -60,32 +62,39 @@ namespace LaserDisplay
                 for (int index = 0; index < bytesRecorded; index += bufferIncrement)
                 {
                     float sample32 = BitConverter.ToSingle(buffer, index);
-                    sampleAggregator.Add(sample32);
+                    _sampleAggregator.Add(sample32);
                 }   
             }
         }
 
         void FftCalculated(object sender, FftEventArgs e)
         {
-            var max = e.AverageVolume;
-            
-            var maxVal = (max * 100);
-            if (maxVal < 0.4f)
+            var max = e.Result.Skip(0).Take(150).Average(x =>Math.Abs(x.X)  ) * 100;
+            vals.Enqueue(max);
+            if (vals.Count > 10)
             {
-                maxVal = 0.4f;
+                vals.Dequeue();
             }
-            else
-            {
-                maxVal = 0.4f + (maxVal * 0.08f);
-            }
+            var av = vals.Average();
 
 
-            if (maxVal > 0.7f)
-            {
-                maxVal = 0.7f;
-            }
-  
-            _laserDraw.audioMaxVal = maxVal * 0.17f;
+            //var maxVal = (max * 100);
+            //if (maxVal < 0.4f)
+            //{
+            //    maxVal = 0.4f;
+            //}
+            //else
+            //{
+            //    maxVal = 0.4f + (maxVal * 0.08f);
+            //}
+
+
+            //if (maxVal > 0.7f)
+            //{
+            //    maxVal = 0.7f;
+            //}
+
+            _laserDraw.audioMaxVal = av * 10f;
         }
     }
 }
