@@ -21,7 +21,7 @@ namespace LaserDisplay
         private double ry = 0;
         double rx = 0, rz = 0;
 
-        private bool processFOV = true;
+        private bool processFOV = false;
 
         private bool enableLaser = false;
 
@@ -159,25 +159,23 @@ namespace LaserDisplay
                 scene.Shapes.Add(shape1);
 
 
-                scene.Shapes.Add(new MyShape()
-                {
-                    Points = slantedTriangle.ToList(),
-                    Scale = scale,
-                    RotateY = 120,
-                    JoinWithPrevious = join
-                });
+                //scene.Shapes.Add(new MyShape()
+                //{
+                //    Points = slantedTriangle.ToList(),
+                //    Scale = scale,
+                //    RotateY = 120,
+                //    JoinWithPrevious = join
+                //});
 
 
-                var points = slantedTriangle.ToList();
-
-                scene.Shapes.Add(new MyShape()
-                {
-                    Points = points,
-                    Scale = scale,
-                    RotateY = 240,
-                    JoinWithPrevious = join,
-                    //JoinWithShape = shape1
-                });
+                //scene.Shapes.Add(new MyShape()
+                //{
+                //    Points = slantedTriangle.ToList(),
+                //    Scale = scale,
+                //    RotateY = 240,
+                //    JoinWithPrevious = join,
+                //    //JoinWithShape = shape1
+                //});
             }
         }
         
@@ -226,11 +224,11 @@ namespace LaserDisplay
         public void UpdateAnimation()
         {
 
-           ry += yRotationIncrement;
+           //ry += yRotationIncrement;
 
             // these are crazy
-            rx += xRotationIncrement;
-            rz += zRotationIncrement;
+            //rx += xRotationIncrement;
+            //rz += zRotationIncrement;
         }
 
 
@@ -282,15 +280,15 @@ namespace LaserDisplay
                             var v = new Vector(calcPoint.X, calcPoint.Y);
                             var v2 = new Vector(prevSegmentEndX, prevSegmentEndY);
                             var v3 = v + v2;
-                            Vector perpVector;
+                            Vector perpVector = v3;
 
-                            if (r.Next(0, 2) > 0)
+                            if (r.Next(0, 2) > 0) // one in 3 chance?
                             {
                                 perpVector = PerpendicularClockwise(v3);
                             }
                             else
                             {
-                                perpVector = PerpendicularCounterClockwise(v3);
+                                //perpVector = PerpendicularCounterClockwise(v3);
                             }
 
                             var scl = 80;
@@ -300,13 +298,12 @@ namespace LaserDisplay
 
                             var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);
 
-                            var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
-
-                            //newPoints.Add(newP2);
+                            //var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
 
                             if (addNoiseToLines)
                             {
                                 newPoints.Add(newP);
+                                //newPoints.Add(newP2);
                             }
 
                             prevSegmentEndX = calcPoint.X;
