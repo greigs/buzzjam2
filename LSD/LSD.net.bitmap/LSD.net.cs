@@ -202,7 +202,7 @@ namespace LSD.net.bitmap
             var sw = Stopwatch.StartNew();
             IntPtr result = lsd_scale(ref n, _lsdImage, _lsdImage.Length, _X, _Y, scale); //LSD function
             sw.Stop();
-            Console.WriteLine("lsd_scale : " + sw.Elapsed.Milliseconds);
+            //Console.WriteLine("lsd_scale : " + sw.Elapsed.Milliseconds);
             if (n > 0)
             {
                 int n_out = 7 * n;

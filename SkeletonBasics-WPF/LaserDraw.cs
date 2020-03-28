@@ -11,11 +11,6 @@ using Laser;
 using LSD.net.bitmap;
 using Brushes = System.Windows.Media.Brushes;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
-using System.Drawing.Imaging;
-
-using System.Drawing;
-
-using System;
 using System.IO;
 
 
@@ -32,11 +27,11 @@ namespace LaserDisplay
 
         private bool processFOV = false;
 
-        private bool enableLaser = false;
+        private bool enableLaser = true;
 
 
 
-        double w = 1920.0, h = 1080.0;
+        double w = 640.0, h = 480.0;
         const double globalScale = 1.0;
 
         double fov = 340;
@@ -62,12 +57,12 @@ namespace LaserDisplay
         Graphics captureGraphics;
         Rectangle captureRectangle;
         Bitmap captureBitmap;
-        Bitmap capture = null;
+        Bitmap _capture = null;
 
         readonly MemoryStream _ms = new MemoryStream();
         private LineSegmentDetector _lsd = null;
         LSDLine[] lines = null;
-
+        
         public LaserDraw()
         {
 
@@ -275,9 +270,7 @@ namespace LaserDisplay
             {
                _laser = DAC.Initialize(ControllerTypes.RiyaUSB, ControllerType.RiyaUSB);
             }
- 
-            Thread.Sleep(5);
-            
+
             List<LaserPoint> laserFrame = new List<LaserPoint>();
 
             foreach (var shape in scene.Shapes)
@@ -381,9 +374,9 @@ namespace LaserDisplay
                             }
 
                             var scl = 80;
+                            var wobbleDistance = ((audioMaxVal) * scl) * ((audioMaxVal) * scl);
                             var calcPoint2 = CreateInterpolatedPoint(new System.Windows.Point(v.X, v.Y),
-                                new System.Windows.Point(perpVector.X, perpVector.Y),
-                                ((audioMaxVal)*scl)*((audioMaxVal)*scl));
+                                new System.Windows.Point(perpVector.X, perpVector.Y),0.0);
 
                             var newP = new LaserPoint(new System.Windows.Point(calcPoint2.X, calcPoint2.Y), true);
 
@@ -440,30 +433,27 @@ namespace LaserDisplay
         {
             scene.Shapes.Clear();
             
-            if (capture == null)
-            {
-                captureGraphics.CopyFromScreen(captureRectangle.Left, captureRectangle.Top, 0, 0,
-                    captureRectangle.Size);
+            
+            captureGraphics.CopyFromScreen(captureRectangle.Left, captureRectangle.Top + 500, 0, 0,
+                captureRectangle.Size);
 
-                captureBitmap.Save(_ms, ImageFormat.Bmp);
-                _ms.Position = 0;
-                capture = new Bitmap(_ms);
-                _ms.Position = 0;
-            }
-
+            captureBitmap.Save(_ms, ImageFormat.Jpeg);
+            _ms.Position = 0;
+            _capture = new Bitmap(_ms);
+            _ms.Position = 0;
             
             //_bitmap = HtmlRenderer.HtmlRenderer.RenderUrl();
 
-         
-                lines = DiscoverLineSegments(capture);
-            
+            lines = DiscoverLineSegments(_capture);
 
             foreach (var lsdLine in lines)
             {
-                var points = new List<Point3D>();
+                var points = new List<Point3D>
+                {
+                    new Point3D(lsdLine.P1.X, lsdLine.P1.Y, 0),
+                    new Point3D(lsdLine.P2.X, lsdLine.P2.Y, 0)
+                };
 
-                points.Add(new Point3D(lsdLine.P1.X, lsdLine.P1.Y, 0));
-                points.Add(new Point3D(lsdLine.P2.X, lsdLine.P2.Y, 0));
                 var shape1 = new MyShape()
                 {
                     Points = points

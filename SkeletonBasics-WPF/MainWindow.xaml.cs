@@ -33,6 +33,8 @@ namespace LaserDisplay
         private static DAC _laser;
         public static LaserDraw _laserDraw;
         private static bool exiting;
+        private DateTime frameDisplayTimestamp = DateTime.UtcNow;
+        private int frameCount = 0;
 
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
@@ -82,9 +84,16 @@ namespace LaserDisplay
                         _laserDraw.DrawingContext = dc;
                         _laserDraw.UpdateFrame();
                         _laserDraw.UpdateAnimation();
-
                         _laserDraw.DrawFrame();
-                        
+                        frameCount++;
+                        if (DateTime.UtcNow.AddSeconds(-1) >  frameDisplayTimestamp)
+                        {
+                            frameDisplayTimestamp = DateTime.UtcNow;
+                            Console.WriteLine(frameCount + "fps");
+                            frameCount = 0;
+                        }
+
+
 
                     })).Wait();
                 }
