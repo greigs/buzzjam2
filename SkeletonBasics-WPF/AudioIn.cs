@@ -14,7 +14,7 @@ namespace LaserDisplay
 
         // Other inputs are also usable. Just look through the NAudio library.
         private IWaveIn waveIn;
-        private static int fftLength = 256; // NAudio fft wants powers of two!
+        private static int fftLength = 64; // NAudio fft wants powers of two!
 
         // There might be a sample aggregator in NAudio somewhere but I made a variation for my needs
         private readonly SampleAggregator _sampleAggregator = new SampleAggregator(fftLength);

@@ -80,8 +80,11 @@ namespace LaserDisplay
                     {
                         // Update UI elements
                         _laserDraw.DrawingContext = dc;
-                        _laserDraw.DrawFrame();
+                        _laserDraw.UpdateFrame();
                         _laserDraw.UpdateAnimation();
+
+                        _laserDraw.DrawFrame();
+                        
 
                     })).Wait();
                 }

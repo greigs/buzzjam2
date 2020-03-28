@@ -11,9 +11,9 @@ namespace HtmlRenderer
             var htmlToImage = new NReco.ImageGenerator.HtmlToImageConverter();
             using (Stream outputStream = new MemoryStream())
             {
-                htmlToImage.GenerateImageFromFile("http://" + "www.google.com", ImageFormat.Bmp, outputStream);
+                htmlToImage.GenerateImageFromFile("https://www.petmd.com/cat/behavior/4-facts-about-your-cats-brain", ImageFormat.Bmp, outputStream);
                 outputStream.Position = 0;
-                var bitmap = Bitmap.FromStream(outputStream);
+                var bitmap = Image.FromStream(outputStream);
                 return (Bitmap) bitmap;
             }
         }

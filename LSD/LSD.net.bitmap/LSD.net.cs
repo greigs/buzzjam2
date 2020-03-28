@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -47,21 +48,8 @@ namespace LSD.net.bitmap
             }
         }
         IntPtr ptr;
-        public LineSegmentDetector(Bitmap bmp)
+        public LineSegmentDetector()
         {
-            _grayImage = MakeGrayscaleBitmap(bmp);
-            _lines = new List<LSDLine>();
-            _X = _grayImage.Width;
-            _Y = _grayImage.Height;
-            _lsdImage = new double[_X * _Y];
-            for (int i = 0; i < _X; i++)
-            {
-                for (int j = 0; j < _Y; j++)
-                {
-                    _lsdImage[i + j * _X] = (double)_grayImage.GetPixel(i, j).R;
-                }
-            }
-
             var myPath = new Uri(typeof(LineSegmentDetector).Assembly.CodeBase).LocalPath;
             var myFolder = Path.GetDirectoryName(myPath);
 
@@ -79,8 +67,53 @@ namespace LSD.net.bitmap
                 }
             }
             ptr = LoadLibrary(myFolder + subfolder + "LSD.dll");
-            //SetDllDirectory(myFolder + subfolder);
         }
+
+        public LSDLine[] Detect(Bitmap bmp, double scale)
+        {
+            _grayImage = MakeGrayscaleBitmap(bmp);
+            _lines = new List<LSDLine>();
+            _X = _grayImage.Width;
+            _Y = _grayImage.Height;
+            if (_lsdImage == null)
+            {
+                _lsdImage = new double[_X * _Y];
+            }
+
+            ProcessUsingLockbitsAndUnsafeAndParallel(_grayImage);
+            FindLines(scale);
+
+            return Lines;
+        }
+
+        private void ProcessUsingLockbitsAndUnsafeAndParallel(Bitmap processedBitmap)
+        {
+
+            _lsdImage = new double[_X * _Y];
+
+            unsafe
+            {
+                BitmapData bitmapData = processedBitmap.LockBits(new Rectangle(0, 0, processedBitmap.Width, processedBitmap.Height), ImageLockMode.ReadWrite, processedBitmap.PixelFormat);
+
+                int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(processedBitmap.PixelFormat) / 8;
+                int heightInPixels = bitmapData.Height;
+                int widthInBytes = bitmapData.Width * bytesPerPixel;
+                byte* PtrFirstPixel = (byte*)bitmapData.Scan0;
+
+                Parallel.For(0, heightInPixels, y =>
+                {
+                    byte* currentLine = PtrFirstPixel + (y * bitmapData.Stride);
+                    for (int x = 0; x < widthInBytes; x = x + bytesPerPixel)
+                    {
+                        int oldRed = currentLine[x + 2];
+                        _lsdImage[(x + (y * bitmapData.Stride)) / bytesPerPixel] = oldRed;
+                    }
+                });
+                processedBitmap.UnlockBits(bitmapData);
+            }
+        }
+
+
 
         private static Bitmap MakeGrayscaleBitmap(Bitmap original)
         {
@@ -166,7 +199,10 @@ namespace LSD.net.bitmap
         {
             _lines.Clear();
             int n = 0;
+            var sw = Stopwatch.StartNew();
             IntPtr result = lsd_scale(ref n, _lsdImage, _lsdImage.Length, _X, _Y, scale); //LSD function
+            sw.Stop();
+            Console.WriteLine("lsd_scale : " + sw.Elapsed.Milliseconds);
             if (n > 0)
             {
                 int n_out = 7 * n;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading;
@@ -11,8 +9,14 @@ using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using Laser;
 using LSD.net.bitmap;
-using HtmlRenderer;
 using Brushes = System.Windows.Media.Brushes;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using System.Drawing.Imaging;
+
+using System.Drawing;
+
+using System;
+using System.IO;
 
 
 namespace LaserDisplay
@@ -55,26 +59,51 @@ namespace LaserDisplay
         private static DAC _laser;
         public float audioMaxVal = 1.0f;
         private Bitmap _bitmap;
+        Graphics captureGraphics;
+        Rectangle captureRectangle;
+        Bitmap captureBitmap;
+        Bitmap capture = null;
 
+        readonly MemoryStream _ms = new MemoryStream();
+        private LineSegmentDetector _lsd = null;
+        LSDLine[] lines = null;
 
         public LaserDraw()
-        {;
-            _bitmap = HtmlRenderer.HtmlRenderer.RenderUrl();
-            var lines = DiscoverLineSegments(_bitmap);
+        {
 
-            CreateScene(lines);
+            //Creating a new Bitmap object
+            
+            captureBitmap = new Bitmap(640, 480, PixelFormat.Format32bppArgb);
+
+            //Bitmap captureBitmap = new Bitmap(int width, int height, PixelFormat);
+            //Creating a Rectangle object which will  
+            //capture our Current Screen
+            
+            captureRectangle = new Rectangle(0,0,640,480);
+
+            //Creating a New Graphics Object
+            
+            captureGraphics = Graphics.FromImage(captureBitmap);
+            //Copying Image from The Screen
+           
+
+            CreateScene();
 
         }
 
         private LSDLine[] DiscoverLineSegments(Bitmap bmp)
         {
             //Bitmap bmpT = (Bitmap)bmp.GetThumbnailImage(500, (int)((float)bmp.Height / ((float)bmp.Width / 500)), null, IntPtr.Zero); //use this image if tou want to autorotate by text lines
-            using (LineSegmentDetector lsd = new LineSegmentDetector(MakeGrayscaleBitmap(bmp)))
+            if (_lsd == null)
             {
-                lsd.FindLines(0.9);
-                return lsd.Lines;
+                _lsd = new LineSegmentDetector();
             }
+            
+            return _lsd.Detect(bmp, 0.9);
+            
         }
+
+
 
         public static Bitmap MakeGrayscaleBitmap(Bitmap original)
         {
@@ -189,7 +218,7 @@ namespace LaserDisplay
             return newPoint;
         }
 
-        public void CreateScene(LSDLine[] lines)
+        public void CreateScene()
         {
             Point3D[] slantedTriangle =
             {
@@ -234,18 +263,7 @@ namespace LaserDisplay
 //                });
 //            }
 
-            foreach (var lsdLine in lines)
-            {
-                var points = new List<Point3D>();
 
-                points.Add(new Point3D(lsdLine.P1.X, lsdLine.P1.Y, 0));
-                points.Add(new Point3D(lsdLine.P2.X, lsdLine.P2.Y, 0));
-                var shape1 = new MyShape()
-                {
-                    Points = points
-                };
-                scene.Shapes.Add(shape1);
-            }
 
         }
         
@@ -416,6 +434,42 @@ namespace LaserDisplay
 
             // d. calculate and Draw the new vector,
             return new System.Windows.Point((a.X + vectorX), (a.Y + vectorY));
+        }
+
+        public void UpdateFrame()
+        {
+            scene.Shapes.Clear();
+            
+            if (capture == null)
+            {
+                captureGraphics.CopyFromScreen(captureRectangle.Left, captureRectangle.Top, 0, 0,
+                    captureRectangle.Size);
+
+                captureBitmap.Save(_ms, ImageFormat.Bmp);
+                _ms.Position = 0;
+                capture = new Bitmap(_ms);
+                _ms.Position = 0;
+            }
+
+            
+            //_bitmap = HtmlRenderer.HtmlRenderer.RenderUrl();
+
+         
+                lines = DiscoverLineSegments(capture);
+            
+
+            foreach (var lsdLine in lines)
+            {
+                var points = new List<Point3D>();
+
+                points.Add(new Point3D(lsdLine.P1.X, lsdLine.P1.Y, 0));
+                points.Add(new Point3D(lsdLine.P2.X, lsdLine.P2.Y, 0));
+                var shape1 = new MyShape()
+                {
+                    Points = points
+                };
+                scene.Shapes.Add(shape1);
+            }
         }
     }
 
