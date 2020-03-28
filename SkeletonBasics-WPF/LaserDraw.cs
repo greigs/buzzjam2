@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using Laser;
+using LSD.net.bitmap;
+using HtmlRenderer;
 using Brushes = System.Windows.Media.Brushes;
-using Point = System.Windows.Point;
 
 
 namespace LaserDisplay
@@ -27,7 +32,7 @@ namespace LaserDisplay
 
 
 
-        double w = 640.0, h = 480.0;
+        double w = 1920.0, h = 1080.0;
         const double globalScale = 1.0;
 
         double fov = 340;
@@ -49,12 +54,63 @@ namespace LaserDisplay
         
         private static DAC _laser;
         public float audioMaxVal = 1.0f;
+        private Bitmap _bitmap;
 
 
         public LaserDraw()
-        {
-            CreateScene();
+        {;
+            _bitmap = HtmlRenderer.HtmlRenderer.RenderUrl();
+            var lines = DiscoverLineSegments(_bitmap);
+
+            CreateScene(lines);
+
         }
+
+        private LSDLine[] DiscoverLineSegments(Bitmap bmp)
+        {
+            //Bitmap bmpT = (Bitmap)bmp.GetThumbnailImage(500, (int)((float)bmp.Height / ((float)bmp.Width / 500)), null, IntPtr.Zero); //use this image if tou want to autorotate by text lines
+            using (LineSegmentDetector lsd = new LineSegmentDetector(MakeGrayscaleBitmap(bmp)))
+            {
+                lsd.FindLines(0.9);
+                return lsd.Lines;
+            }
+        }
+
+        public static Bitmap MakeGrayscaleBitmap(Bitmap original)
+        {
+            //create a blank bitmap the same size as original
+            Bitmap newBitmap = new Bitmap(original.Width, original.Height);
+
+            //get a graphics object from the new image
+            Graphics g = Graphics.FromImage(newBitmap);
+
+            //create the grayscale ColorMatrix
+            ColorMatrix colorMatrix = new ColorMatrix(
+                new float[][]
+                {
+                    new float[] {.3f, .3f, .3f, 0, 0},
+                    new float[] {.59f, .59f, .59f, 0, 0},
+                    new float[] {.11f, .11f, .11f, 0, 0},
+                    new float[] {0, 0, 0, 1, 0},
+                    new float[] {0, 0, 0, 0, 1}
+                });
+
+            //create some image attributes
+            ImageAttributes attributes = new ImageAttributes();
+
+            //set the color matrix attribute
+            attributes.SetColorMatrix(colorMatrix);
+
+            //draw the original image on the new image
+            //using the grayscale color matrix
+            g.DrawImage(original, new Rectangle(0, 0, original.Width, original.Height),
+                0, 0, original.Width, original.Height, GraphicsUnit.Pixel, attributes);
+
+            //dispose the Graphics object
+            g.Dispose();
+            return newBitmap;
+        }
+
 
         public double degToRad(double d)
         {
@@ -67,7 +123,7 @@ namespace LaserDisplay
 
             foreach (var point in points)
             {
-                var newPoint = TranslatetAndTransform(rx, ry, rz, processFOV, localScale, point);
+                var newPoint = TranslateAndTransform(rx, ry, rz, processFOV, localScale, point);
 
                 p.Add(newPoint);
             }
@@ -75,7 +131,7 @@ namespace LaserDisplay
             return p;
         }
 
-        private Point3D TranslatetAndTransform(double rx, double ry, double rz, bool processFOV, double localScale, Point3D point)
+        private Point3D TranslateAndTransform(double rx, double ry, double rz, bool processFOV, double localScale, Point3D point)
         {
             double x, y, z, tx, ty, tz;
 
@@ -133,7 +189,7 @@ namespace LaserDisplay
             return newPoint;
         }
 
-        public void CreateScene()
+        public void CreateScene(LSDLine[] lines)
         {
             Point3D[] slantedTriangle =
             {
@@ -147,36 +203,50 @@ namespace LaserDisplay
 
             scene = new Scene();
 
-            for (var scale = 1.0; scale < 1.1; scale += 0.1)
+//            for (var scale = 1.0; scale < 1.1; scale += 0.1)
+//            {
+//                var shape1 = new MyShape()
+//                {
+//                    Points = slantedTriangle.ToList(),
+//                    Scale = scale,
+//                    RotateY = 0,
+//                };
+//
+//                scene.Shapes.Add(shape1);
+//
+//
+//                scene.Shapes.Add(new MyShape()
+//                {
+//                    Points = slantedTriangle.ToList(),
+//                    Scale = scale,
+//                    RotateY = 120,
+//                    JoinWithPrevious = join
+//                });
+//
+//
+//                scene.Shapes.Add(new MyShape()
+//                {
+//                    Points = slantedTriangle.ToList(),
+//                    Scale = scale,
+//                    RotateY = 240,
+//                    JoinWithPrevious = join,
+//                    //JoinWithShape = shape1
+//                });
+//            }
+
+            foreach (var lsdLine in lines)
             {
+                var points = new List<Point3D>();
+
+                points.Add(new Point3D(lsdLine.P1.X, lsdLine.P1.Y, 0));
+                points.Add(new Point3D(lsdLine.P2.X, lsdLine.P2.Y, 0));
                 var shape1 = new MyShape()
                 {
-                    Points = slantedTriangle.ToList(),
-                    Scale = scale,
-                    RotateY = 0,
+                    Points = points
                 };
-
                 scene.Shapes.Add(shape1);
-
-
-                //scene.Shapes.Add(new MyShape()
-                //{
-                //    Points = slantedTriangle.ToList(),
-                //    Scale = scale,
-                //    RotateY = 120,
-                //    JoinWithPrevious = join
-                //});
-
-
-                //scene.Shapes.Add(new MyShape()
-                //{
-                //    Points = slantedTriangle.ToList(),
-                //    Scale = scale,
-                //    RotateY = 240,
-                //    JoinWithPrevious = join,
-                //    //JoinWithShape = shape1
-                //});
             }
+
         }
         
         public void DrawFrame()
@@ -194,8 +264,9 @@ namespace LaserDisplay
 
             foreach (var shape in scene.Shapes)
             {
+                var scaleValue = shape.Scale + 1.0 * ((audioMaxVal + 0.1)) * 1.1;
                 var translated = TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + shape.RotateY),
-                    degToRad(rz), processFOV, shape.Scale + 1.0 * (( audioMaxVal + 0.1)) * 1.1);
+                    degToRad(rz), processFOV, 2.0);
 
                 var converted = ConvertToLaserPoints(translated, shape.JoinWithPrevious);
                 
@@ -272,8 +343,8 @@ namespace LaserDisplay
                         double prevSegmentEndY = newPointY;
                         for (int j=0; j< numSegments; j++)
                         {
-                            var calcPoint = CreateInterpolatedPoint(new Point(prevSegmentEndX, prevSegmentEndY),
-                                new Point(nextpointX, nextpointY), maxDistanceBetweenLaserPoints);
+                            var calcPoint = CreateInterpolatedPoint(new System.Windows.Point(prevSegmentEndX, prevSegmentEndY),
+                                new System.Windows.Point(nextpointX, nextpointY), maxDistanceBetweenLaserPoints);
 
                             
                             //from the new point, calculate the vector back to the old point.
@@ -292,11 +363,11 @@ namespace LaserDisplay
                             }
 
                             var scl = 80;
-                            var calcPoint2 = CreateInterpolatedPoint(new Point(v.X, v.Y),
-                                new Point(perpVector.X, perpVector.Y),
+                            var calcPoint2 = CreateInterpolatedPoint(new System.Windows.Point(v.X, v.Y),
+                                new System.Windows.Point(perpVector.X, perpVector.Y),
                                 ((audioMaxVal)*scl)*((audioMaxVal)*scl));
 
-                            var newP = new LaserPoint(new Point(calcPoint2.X, calcPoint2.Y), true);
+                            var newP = new LaserPoint(new System.Windows.Point(calcPoint2.X, calcPoint2.Y), true);
 
                             //var newP2 = new LaserPoint(new Point(calcPoint.X, calcPoint.Y), true);
 
@@ -329,7 +400,7 @@ namespace LaserDisplay
             return new Vector(vector.Y, -vector.X);
         }
 
-        private static Point CreateInterpolatedPoint(Point a, Point b, double distance)
+        private static System.Windows.Point CreateInterpolatedPoint(System.Windows.Point a, System.Windows.Point b, double distance)
         {
 
             // a. calculate the vector from o to g:

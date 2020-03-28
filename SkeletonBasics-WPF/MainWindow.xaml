@@ -1,7 +1,7 @@
 ﻿<Window x:Class="LaserDisplay.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Stardis" Height="735" Width="1062.633" Loaded="WindowLoaded" Closing="WindowClosing">
+        Title="Display" Height="1080" Width="1920" Loaded="WindowLoaded" Closing="WindowClosing">
 
     <Window.Resources>
         <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e"/>
@@ -52,12 +52,12 @@
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0" Margin="0 0 0 20"/>
         <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Left">
-            <Image Name="Image" Width="640" Height="480" HorizontalAlignment="Left"/>
+            <Image Name="Image" Width="1920" Height="1080" HorizontalAlignment="Left"/>
         </Viewbox>
         <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}">
             <StatusBarItem Padding="0 0 0 10"/>
         </StatusBar>
-        <Slider x:Name="slider" HorizontalAlignment="Left" Margin="678,311,-210,0" Grid.Row="1" VerticalAlignment="Top" Height="39" Width="568" RenderTransformOrigin="0.5,0.5" Minimum="100" Maximum="5000" SmallChange="1" LargeChange="4" ValueChanged="slider_ValueChanged">
+        <Slider x:Name="slider" HorizontalAlignment="Left" Margin="1532,373,-206.667,0" Grid.Row="1" VerticalAlignment="Top" Height="39" Width="568" RenderTransformOrigin="0.5,0.5" Minimum="100" Maximum="5000" SmallChange="1" LargeChange="4" ValueChanged="slider_ValueChanged">
             <Slider.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -67,7 +67,7 @@
                 </TransformGroup>
             </Slider.RenderTransform>
         </Slider>
-        <Slider x:Name="slider2" HorizontalAlignment="Left" Margin="698,337,-229,0" Grid.Row="1" VerticalAlignment="Top" Height="39" Width="567" RenderTransformOrigin="0.553,0.465" Maximum="600" Minimum="200" Value="470" SmallChange="1" LargeChange="4" ValueChanged="slider2_ValueChanged">
+        <Slider x:Name="slider2" HorizontalAlignment="Left" Margin="1552,399,-225.667,0" Grid.Row="1" VerticalAlignment="Top" Height="39" Width="567" RenderTransformOrigin="0.553,0.465" Maximum="600" Minimum="200" Value="470" SmallChange="1" LargeChange="4" ValueChanged="slider2_ValueChanged">
             <Slider.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>

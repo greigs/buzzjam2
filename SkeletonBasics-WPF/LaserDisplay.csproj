@@ -53,7 +53,6 @@
   <ItemGroup>
     <Reference Include="NAudio, Version=1.7.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\NAudio.1.7.3\lib\net35\NAudio.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -120,9 +119,17 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HtmlRenderer\HtmlRenderer.csproj">
+      <Project>{E9CC1862-3DA1-44A7-96BA-E427C0053B67}</Project>
+      <Name>HtmlRenderer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\laserdac\LaserDAC\VVVV.LaserDAC.csproj">
       <Project>{eb7ac527-17ba-4b45-8fc6-a27de635bdab}</Project>
       <Name>VVVV.LaserDAC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LSD\LSD.net.bitmap\LSD.net.bitmap.csproj">
+      <Project>{AAC7AE01-25D3-4FD7-9098-0C98A7EC05D8}</Project>
+      <Name>LSD.net.bitmap</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
