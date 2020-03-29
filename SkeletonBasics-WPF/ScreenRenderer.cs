@@ -14,7 +14,7 @@ namespace LaserDisplay
     {
 
 
-        private static System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.White, 2);
+        private static System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.Black, 2);
 
 
         public static void DrawToScreen(LaserPoint[] points, double drawScale, double drawOffsetX, double drawOffsetY, DrawingContext dc)
@@ -73,7 +73,7 @@ namespace LaserDisplay
             {
                 Fill = null
             };
-            myPath.Stroke = System.Windows.Media.Brushes.White;
+            myPath.Stroke = System.Windows.Media.Brushes.Black;
             myPath.Data = myPathGeometry;
 
             dc.DrawGeometry(null, pen, myPathGeometry);

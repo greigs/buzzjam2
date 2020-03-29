@@ -6,7 +6,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Laser;
 
@@ -64,14 +66,17 @@ namespace LaserDisplay
             Image.Source = this.imageSource;
 
 
-            slider.Value = _laserDraw.laserxoffset;
+            //slider.Value = _laserDraw.laserxoffset;
 
 
 
             var audio = new AudioIn(_laserDraw);
             audio.Start();
 
-            
+            LaserPoint[] frameSegments = null;
+            int frameSegmentIndex = 0;
+
+
 
             while (Application.Current != null && !exiting)
             {
@@ -80,11 +85,24 @@ namespace LaserDisplay
 
                     Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
                     {
-                        // Update UI elements
                         _laserDraw.DrawingContext = dc;
-                        _laserDraw.UpdateFrame();
-                        _laserDraw.UpdateAnimation();
-                        _laserDraw.DrawFrame();
+                        var take = 10;
+                        if (frameSegments == null || frameSegmentIndex >= frameSegments.Length - take - 1)
+                        {
+                            // Update UI elements
+                            
+                            _laserDraw.UpdateFrame();
+                            _laserDraw.UpdateAnimation();
+                            _laserDraw.ClearFrame();
+                            frameSegments = _laserDraw.GetFrameSegments();
+                            frameSegmentIndex = 0;
+                        }
+
+                        //_laserDraw.ClearFrame();
+                        _laserDraw.DrawLaserSegments(frameSegments);//.Skip(frameSegmentIndex + 1).Take(take).ToArray());
+                        //Thread.Sleep(20);
+                        frameSegmentIndex = frameSegments.Length;
+
                         frameCount++;
                         if (DateTime.UtcNow.AddSeconds(-1) >  frameDisplayTimestamp)
                         {
@@ -92,8 +110,6 @@ namespace LaserDisplay
                             Console.WriteLine(frameCount + "fps");
                             frameCount = 0;
                         }
-
-
 
                     })).Wait();
                 }

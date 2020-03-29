@@ -19,6 +19,10 @@ namespace LaserDisplay
     public class LaserDraw
     {
 
+        public const int MasterWidth = 640;
+        public const int MasterHeight = 480;
+        const double globalScale = 1.0;
+
         public DrawingContext DrawingContext { get; set; }
 
 
@@ -27,22 +31,21 @@ namespace LaserDisplay
 
         private bool processFOV = false;
 
-        private bool enableLaser = true;
+        private bool enableLaser = false;
 
 
 
-        double w = 640.0, h = 480.0;
-        const double globalScale = 1.0;
-
+        double w = MasterWidth, h = MasterHeight;
+     
         double fov = 340;
 
-        double drawScale = 0.01;
-        double drawOffsetX = 100;
-        double drawOffsetY = 400;
+        double drawScale = 1;
+        double drawOffsetX = 0;
+        double drawOffsetY = 0;
 
-        public double laserxoffset = 2000;
+        public double laserxoffset = 0;
         public double laseryoffset = 0;
-        double laserscale = 55;
+        double laserscale = 1;
         int maxDistanceBetweenLaserPoints = 1500;
 
         double yRotationIncrement = 1.0;
@@ -68,13 +71,13 @@ namespace LaserDisplay
 
             //Creating a new Bitmap object
             
-            captureBitmap = new Bitmap(640, 480, PixelFormat.Format32bppArgb);
+            captureBitmap = new Bitmap(MasterWidth, MasterHeight, PixelFormat.Format32bppArgb);
 
             //Bitmap captureBitmap = new Bitmap(int width, int height, PixelFormat);
             //Creating a Rectangle object which will  
             //capture our Current Screen
             
-            captureRectangle = new Rectangle(0,0,640,480);
+            captureRectangle = new Rectangle(0,0, MasterWidth, MasterHeight);
 
             //Creating a New Graphics Object
             
@@ -100,40 +103,7 @@ namespace LaserDisplay
 
 
 
-        public static Bitmap MakeGrayscaleBitmap(Bitmap original)
-        {
-            //create a blank bitmap the same size as original
-            Bitmap newBitmap = new Bitmap(original.Width, original.Height);
-
-            //get a graphics object from the new image
-            Graphics g = Graphics.FromImage(newBitmap);
-
-            //create the grayscale ColorMatrix
-            ColorMatrix colorMatrix = new ColorMatrix(
-                new float[][]
-                {
-                    new float[] {.3f, .3f, .3f, 0, 0},
-                    new float[] {.59f, .59f, .59f, 0, 0},
-                    new float[] {.11f, .11f, .11f, 0, 0},
-                    new float[] {0, 0, 0, 1, 0},
-                    new float[] {0, 0, 0, 0, 1}
-                });
-
-            //create some image attributes
-            ImageAttributes attributes = new ImageAttributes();
-
-            //set the color matrix attribute
-            attributes.SetColorMatrix(colorMatrix);
-
-            //draw the original image on the new image
-            //using the grayscale color matrix
-            g.DrawImage(original, new Rectangle(0, 0, original.Width, original.Height),
-                0, 0, original.Width, original.Height, GraphicsUnit.Pixel, attributes);
-
-            //dispose the Graphics object
-            g.Dispose();
-            return newBitmap;
-        }
+       
 
 
         public double degToRad(double d)
@@ -206,8 +176,8 @@ namespace LaserDisplay
             }
             else
             {
-                x = x + (w/2.0);
-                y = y + (h/2.0);
+                x = x;
+                y = y;
             }
             var newPoint = new Point3D(x: x, y: y, z: z);
             return newPoint;
@@ -215,13 +185,13 @@ namespace LaserDisplay
 
         public void CreateScene()
         {
-            Point3D[] slantedTriangle =
-            {
-                new Point3D(x: 0.0, y: -100.0, z: 0.0),
-                new Point3D(x: -100.0, y: 100.0, z: -60.0),
-                new Point3D(x: 100.0, y: 100.0, z: -60.0),
-                new Point3D(x: 0.0, y: -100.0, z: 0.0)
-            };
+//            Point3D[] slantedTriangle =
+//            {
+//                new Point3D(x: 0.0, y: -100.0, z: 0.0),
+//                new Point3D(x: -100.0, y: 100.0, z: -60.0),
+//                new Point3D(x: 100.0, y: 100.0, z: -60.0),
+//                new Point3D(x: 0.0, y: -100.0, z: 0.0)
+//            };
 
             var join = false;
 
@@ -261,10 +231,16 @@ namespace LaserDisplay
 
 
         }
-        
+
+        public void ClearFrame()
+        {
+            DrawingContext.DrawRectangle(Brushes.White, null, new Rect(0, 0, w, h));
+        }
+
+
         public void DrawFrame()
         {
-            DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
+            //DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
 
             if (_laser == null && enableLaser)
             {
@@ -277,7 +253,7 @@ namespace LaserDisplay
             {
                 var scaleValue = shape.Scale + 1.0 * ((audioMaxVal + 0.1)) * 1.1;
                 var translated = TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + shape.RotateY),
-                    degToRad(rz), processFOV, 2.0);
+                    degToRad(rz), processFOV, 1.0);
 
                 var converted = ConvertToLaserPoints(translated, shape.JoinWithPrevious);
                 
@@ -301,6 +277,47 @@ namespace LaserDisplay
             }
 
             ScreenRenderer.DrawToScreen(laserFrame.ToArray(),drawScale,drawOffsetX,drawOffsetY,DrawingContext);
+        }
+
+        public LaserPoint[] GetFrameSegments()
+        {
+            //DrawingContext.DrawRectangle(Brushes.Black, null, new Rect(0, 0, w, h));
+
+            if (_laser == null && enableLaser)
+            {
+                _laser = DAC.Initialize(ControllerTypes.RiyaUSB, ControllerType.RiyaUSB);
+            }
+
+            List<LaserPoint> laserFrame = new List<LaserPoint>();
+
+            foreach (var shape in scene.Shapes)
+            {
+                var scaleValue = shape.Scale + 1.0 * ((audioMaxVal + 0.1)) * 1.1;
+                var translated = TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + shape.RotateY),
+                    degToRad(rz), processFOV, 1.0);
+
+                var converted = ConvertToLaserPoints(translated, shape.JoinWithPrevious);
+
+                laserFrame.AddRange(converted);
+
+                if (shape.JoinWithShape != null)
+                {
+                    var lineStart = translated.Last();
+                    var lineEnd = TranslateAndTransform(new List<Point3D>() { shape.JoinWithShape.Points.First() },
+                        degToRad(rx), degToRad(ry + shape.JoinWithShape.RotateY),
+                        degToRad(rz), processFOV, shape.JoinWithShape.Scale).First();
+                    var lst = new List<Point3D> { lineStart, lineEnd };
+                    var conv = ConvertToLaserPoints(lst, false);
+                    laserFrame.AddRange(conv);
+                }
+            }
+
+            return laserFrame.ToArray();
+        }
+
+        public void DrawLaserSegments(LaserPoint[] segments)
+        {
+            ScreenRenderer.DrawToScreen(segments, drawScale, drawOffsetX, drawOffsetY, DrawingContext);
         }
 
         public void UpdateAnimation()
@@ -337,7 +354,7 @@ namespace LaserDisplay
 
                 newPoints.Add(newPoint);
 
-                bool addNoiseToLines = true;
+                bool addNoiseToLines = false;
 
                 if (i < (points.Count - 1))
                 {
