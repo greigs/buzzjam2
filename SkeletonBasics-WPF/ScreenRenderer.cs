@@ -14,7 +14,7 @@ namespace LaserDisplay
     {
 
 
-        private static System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.Black, 2);
+        private static System.Windows.Media.Pen pen = new System.Windows.Media.Pen(System.Windows.Media.Brushes.Black, 2.5);
 
 
         public static void DrawToScreen(LaserPoint[] points, double drawScale, double drawOffsetX, double drawOffsetY, DrawingContext dc)

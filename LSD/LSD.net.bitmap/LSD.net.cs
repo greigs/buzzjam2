@@ -71,10 +71,11 @@ namespace LSD.net.bitmap
 
         public LSDLine[] Detect(Bitmap bmp, double scale)
         {
-            _grayImage = MakeGrayscaleBitmap(bmp);
+            bool convertToGrayscale = true;
+            _grayImage = convertToGrayscale ? MakeGrayscaleBitmap(bmp) : bmp;
             _lines = new List<LSDLine>();
-            _X = _grayImage.Width;
-            _Y = _grayImage.Height;
+            _X = bmp.Width;
+            _Y = bmp.Height;
             if (_lsdImage == null)
             {
                 _lsdImage = new double[_X * _Y];
@@ -105,8 +106,8 @@ namespace LSD.net.bitmap
                     byte* currentLine = PtrFirstPixel + (y * bitmapData.Stride);
                     for (int x = 0; x < widthInBytes; x = x + bytesPerPixel)
                     {
-                        int oldRed = currentLine[x + 2];
-                        _lsdImage[(x + (y * bitmapData.Stride)) / bytesPerPixel] = oldRed;
+                        int oldAverageGray = currentLine[x + 2]; // (currentLine[x + 0] + currentLine[x + 1] + currentLine[x + 2]) / 3;
+                        _lsdImage[(x + (y * bitmapData.Stride)) / bytesPerPixel] = oldAverageGray;
                     }
                 });
                 processedBitmap.UnlockBits(bitmapData);
@@ -199,9 +200,9 @@ namespace LSD.net.bitmap
         {
             _lines.Clear();
             int n = 0;
-            var sw = Stopwatch.StartNew();
+            //var sw = Stopwatch.StartNew();
             IntPtr result = lsd_scale(ref n, _lsdImage, _lsdImage.Length, _X, _Y, scale); //LSD function
-            sw.Stop();
+            //sw.Stop();
             //Console.WriteLine("lsd_scale : " + sw.Elapsed.Milliseconds);
             if (n > 0)
             {

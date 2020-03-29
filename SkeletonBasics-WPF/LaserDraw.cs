@@ -19,9 +19,9 @@ namespace LaserDisplay
     public class LaserDraw
     {
 
-        public const int MasterWidth = 640;
-        public const int MasterHeight = 480;
-        const double globalScale = 1.0;
+        public const int MasterWidth = 320;
+        public const int MasterHeight = 240;
+        const double globalScale = 2.0;
 
         public DrawingContext DrawingContext { get; set; }
 
@@ -35,17 +35,17 @@ namespace LaserDisplay
 
 
 
-        double w = MasterWidth, h = MasterHeight;
+        double w = 640, h = 480;
      
         double fov = 340;
 
-        double drawScale = 1;
+        double drawScale = 0.01;
         double drawOffsetX = 0;
         double drawOffsetY = 0;
 
         public double laserxoffset = 0;
         public double laseryoffset = 0;
-        double laserscale = 1;
+        double laserscale = 55;
         int maxDistanceBetweenLaserPoints = 1500;
 
         double yRotationIncrement = 1.0;
@@ -56,7 +56,7 @@ namespace LaserDisplay
         
         private static DAC _laser;
         public float audioMaxVal = 1.0f;
-        private Bitmap _bitmap;
+
         Graphics captureGraphics;
         Rectangle captureRectangle;
         Bitmap captureBitmap;
@@ -253,7 +253,7 @@ namespace LaserDisplay
             {
                 var scaleValue = shape.Scale + 1.0 * ((audioMaxVal + 0.1)) * 1.1;
                 var translated = TranslateAndTransform(shape.Points, degToRad(rx), degToRad(ry + shape.RotateY),
-                    degToRad(rz), processFOV, 1.0);
+                    degToRad(rz), processFOV, 2.0);
 
                 var converted = ConvertToLaserPoints(translated, shape.JoinWithPrevious);
                 
@@ -354,7 +354,7 @@ namespace LaserDisplay
 
                 newPoints.Add(newPoint);
 
-                bool addNoiseToLines = false;
+                bool addNoiseToLines = true;
 
                 if (i < (points.Count - 1))
                 {

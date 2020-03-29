@@ -69,25 +69,25 @@ namespace LaserDisplay
             //slider.Value = _laserDraw.laserxoffset;
 
 
-
             var audio = new AudioIn(_laserDraw);
             audio.Start();
 
             LaserPoint[] frameSegments = null;
             int frameSegmentIndex = 0;
-
-
-
+            bool drawInSegments = false;
             while (Application.Current != null && !exiting)
             {
-                using (DrawingContext dc = this.drawingGroup.Open())
+                var take = frameSegments == null ? 0 : 5;
+                var newFrame = !drawInSegments || (frameSegments == null || frameSegmentIndex >= frameSegments.Length - take - 1);
+
+
+                using (DrawingContext dc = newFrame? this.drawingGroup.Open() : this.drawingGroup.Append())
                 {
 
                     Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(() =>
                     {
                         _laserDraw.DrawingContext = dc;
-                        var take = 10;
-                        if (frameSegments == null || frameSegmentIndex >= frameSegments.Length - take - 1)
+                        if (newFrame)
                         {
                             // Update UI elements
                             
@@ -95,13 +95,12 @@ namespace LaserDisplay
                             _laserDraw.UpdateAnimation();
                             _laserDraw.ClearFrame();
                             frameSegments = _laserDraw.GetFrameSegments();
+                            take = !drawInSegments ? frameSegments.Length : take;
                             frameSegmentIndex = 0;
                         }
 
-                        //_laserDraw.ClearFrame();
-                        _laserDraw.DrawLaserSegments(frameSegments);//.Skip(frameSegmentIndex + 1).Take(take).ToArray());
-                        //Thread.Sleep(20);
-                        frameSegmentIndex = frameSegments.Length;
+                        _laserDraw.DrawLaserSegments(frameSegments.ToArray());//.Skip(frameSegmentIndex).Take(take).ToArray());
+                        frameSegmentIndex += take;
 
                         frameCount++;
                         if (DateTime.UtcNow.AddSeconds(-1) >  frameDisplayTimestamp)

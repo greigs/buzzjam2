@@ -5,6 +5,7 @@
 
 
     <Viewbox Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Disabled" Width="640" Height="480" MaxWidth="640" MaxHeight="480" MinWidth="640" MinHeight="480">
-        <Image Name="Image" Width="640" Height="480" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="None" ScrollViewer.VerticalScrollBarVisibility="Disabled" MaxWidth="640" MaxHeight="480" MinWidth="640" MinHeight="480"></Image>
+        <Image Name="Image" Width="640" Height="480" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="None" ScrollViewer.VerticalScrollBarVisibility="Disabled" MaxWidth="640" MaxHeight="480" MinWidth="640" MinHeight="480">
+        </Image>
     </Viewbox>
 </Window>
